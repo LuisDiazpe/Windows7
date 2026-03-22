@@ -4,11 +4,12 @@ import { WindowManagerService } from '../../../application/use-cases/window-mana
 import { WindowComponent } from '../../window-manager/components/window.component';
 import { TaskbarComponent } from '../../taskbar/components/taskbar.component';
 import { NotepadComponent } from '../../apps/notepad/notepad.component';
+import { CalculatorComponent } from '../../apps/calculator/calculator.component';
 
 @Component({
   selector: 'app-desktop',
   standalone: true,
-  imports: [CommonModule, WindowComponent, TaskbarComponent, NotepadComponent],
+  imports: [CommonModule, WindowComponent, TaskbarComponent, NotepadComponent, CalculatorComponent],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
 })

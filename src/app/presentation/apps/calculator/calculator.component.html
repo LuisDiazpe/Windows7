@@ -1,0 +1,88 @@
+<div class="calculator" (click)="$event.stopPropagation()">
+
+  <!-- Menu bar -->
+  <div class="menu-bar">
+    <div class="menu-item" (click)="$event.stopPropagation(); toggleMenu('view')">
+      View
+      @if (showMenu() === 'view') {
+        <div class="dropdown">
+          <div class="dropdown-item" (click)="setMode('standard')">
+            {{ mode() === 'standard' ? '✓' : '' }} Standard
+          </div>
+          <div class="dropdown-item" (click)="setMode('scientific')">
+            {{ mode() === 'scientific' ? '✓' : '' }} Scientific
+          </div>
+        </div>
+      }
+    </div>
+    <div class="menu-item" (click)="$event.stopPropagation(); toggleMenu('edit')">
+      Edit
+      @if (showMenu() === 'edit') {
+        <div class="dropdown">
+          <div class="dropdown-item" (click)="memoryStore()">Copy</div>
+          <div class="dropdown-item" (click)="memoryRecall()">Paste</div>
+        </div>
+      }
+    </div>
+    <div class="menu-item">Help</div>
+  </div>
+
+  <!-- Display -->
+  <div class="display-area">
+    <div class="expression">{{ expression() }}</div>
+    <div class="display">{{ display() }}</div>
+  </div>
+
+  <!-- Memory bar -->
+  <div class="memory-bar">
+    <button class="mem-btn" (click)="memoryClear()">MC</button>
+    <button class="mem-btn" (click)="memoryRecall()">MR</button>
+    <button class="mem-btn" (click)="memoryStore()">MS</button>
+    <button class="mem-btn" (click)="memoryAdd()">M+</button>
+    <button class="mem-btn" (click)="memorySubtract()">M-</button>
+  </div>
+
+  <!-- Scientific panel -->
+  @if (mode() === 'scientific') {
+    <div class="scientific-panel">
+      <button class="sci-btn" (click)="scientific('sin')">sin</button>
+      <button class="sci-btn" (click)="scientific('cos')">cos</button>
+      <button class="sci-btn" (click)="scientific('tan')">tan</button>
+      <button class="sci-btn" (click)="scientific('log')">log</button>
+      <button class="sci-btn" (click)="scientific('ln')">ln</button>
+      <button class="sci-btn" (click)="scientific('sqrt')">√</button>
+      <button class="sci-btn" (click)="scientific('sq')">x²</button>
+      <button class="sci-btn" (click)="scientific('inv')">1/x</button>
+      <button class="sci-btn" (click)="scientific('pi')">π</button>
+      <button class="sci-btn" (click)="scientific('e')">e</button>
+    </div>
+  }
+
+  <!-- Keypad -->
+  <div class="keypad">
+    <button class="key key-fn" (click)="clearEntry()">CE</button>
+    <button class="key key-fn" (click)="clear()">C</button>
+    <button class="key key-fn" (click)="toggleSign()">±</button>
+    <button class="key key-op" (click)="setOperator('÷')">÷</button>
+
+    <button class="key" (click)="input('7')">7</button>
+    <button class="key" (click)="input('8')">8</button>
+    <button class="key" (click)="input('9')">9</button>
+    <button class="key key-op" (click)="setOperator('×')">×</button>
+
+    <button class="key" (click)="input('4')">4</button>
+    <button class="key" (click)="input('5')">5</button>
+    <button class="key" (click)="input('6')">6</button>
+    <button class="key key-op" (click)="setOperator('-')">−</button>
+
+    <button class="key" (click)="input('1')">1</button>
+    <button class="key" (click)="input('2')">2</button>
+    <button class="key" (click)="input('3')">3</button>
+    <button class="key key-op key-plus" (click)="setOperator('+')">+</button>
+
+    <button class="key key-wide" (click)="input('0')">0</button>
+    <button class="key" (click)="input('.')">.</button>
+    <button class="key key-equals" (click)="calculate()">=</button>
+  </div>
+
+</div>
