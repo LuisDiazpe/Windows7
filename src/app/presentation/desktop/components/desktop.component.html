@@ -52,8 +52,10 @@
           <app-calculator />
         } @else if (win.component === 'cmd') {
           <app-cmd />
-        } @else if (win.component === 'documents' || win.component === 'pictures') {
+        } @else if (win.component === 'documents' ) {
           <app-documents [initialPath]="win.extra?.['path']" />
+        } @else if (win.component === 'pictures') {
+          <app-pictures />
         } @else if (win.component === 'computer') {
           <app-computer />
         } @else if (win.component === 'controlpanel') {

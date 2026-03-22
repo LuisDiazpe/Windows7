@@ -1,23 +1,219 @@
 <div class="control-panel">
+
   <div class="toolbar">
-    <span class="toolbar-title">Control Panel</span>
-    <span class="toolbar-sub">Adjust your computer's settings</span>
+    @if (activePanel()) {
+      <button class="back-btn" (click)="closePanel()">← Back</button>
+    }
+    <span class="toolbar-title">{{ activePanelName() }}</span>
+    <span class="toolbar-sub">
+      {{ activePanel() ? '' : 'Adjust your computer\'s settings' }}
+    </span>
   </div>
 
-  <div class="panel-grid">
-    @for (item of items; track item.name) {
-      <div
-        class="panel-item"
-        [class.selected]="selectedItem?.name === item.name"
-        (click)="select(item)"
-        (dblclick)="open(item)"
-      >
-        <div class="panel-icon" [style.background]="item.color"></div>
-        <div class="panel-text">
-          <div class="panel-name">{{ item.name }}</div>
-          <div class="panel-desc">{{ item.description }}</div>
+  <!-- Main grid -->
+  @if (!activePanel()) {
+    <div class="panel-grid">
+      @for (item of items; track item.id) {
+        <div class="panel-item" (dblclick)="openPanel(item.id)">
+          <div class="panel-icon" [class]="item.icon" [style.background]="item.color"></div>
+          <div class="panel-text">
+            <div class="panel-name">{{ item.name }}</div>
+            <div class="panel-desc">{{ item.desc }}</div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Display panel -->
+  @if (activePanel() === 'display') {
+    <div class="sub-panel">
+      <div class="sub-section">
+        <div class="sub-title">Desktop Background</div>
+        <div class="wallpaper-grid">
+          @for (wp of sys.wallpapers; track wp.id) {
+            <div
+              class="wallpaper-thumb"
+              [class.active]="selectedWallpaper().id === wp.id"
+              [style.background]="wp.value"
+              (click)="selectedWallpaper.set(wp)"
+              [title]="wp.name"
+            >
+              <span class="wp-label">{{ wp.name }}</span>
+            </div>
+          }
         </div>
       </div>
-    }
-  </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Accent Color</div>
+        <div class="accent-colors">
+          @for (color of sys.accentColors; track color.value) {
+            <div
+              class="accent-swatch"
+              [class.active]="tempAccent() === color.value"
+              [style.background]="color.value"
+              (click)="tempAccent.set(color.value)"
+              [title]="color.name"
+            ></div>
+          }
+        </div>
+      </div>
+
+      <div class="sub-preview">
+        <div class="preview-label">Preview</div>
+        <div class="preview-box" [style.background]="selectedWallpaper().value"></div>
+      </div>
+
+      <div class="sub-actions">
+        <button class="btn-apply" (click)="applyWallpaper()">Apply</button>
+        <button class="btn-cancel" (click)="closePanel()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- Sound panel -->
+  @if (activePanel() === 'sound') {
+    <div class="sub-panel">
+      <div class="sub-section">
+        <div class="sub-title">Speaker Volume</div>
+        <div class="volume-control">
+          <div class="volume-icon" [class]="'vol-' + getVolumeIcon()"></div>
+          <input
+            type="range" min="0" max="100"
+            [value]="tempVolume()"
+            (input)="onVolumeChange($any($event.target).value)"
+            class="volume-slider"
+          />
+          <span class="volume-value">{{ tempVolume() }}%</span>
+        </div>
+
+        <div class="volume-bar-container">
+          <div class="volume-bar" [style.width.%]="tempVolume()"></div>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Sound Scheme</div>
+        <div class="sound-scheme">
+          <div class="scheme-item active">Windows Default</div>
+          <div class="scheme-item">No Sounds</div>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">System Sounds</div>
+        <div class="system-sounds">
+          <div class="sound-row">
+            <span>System Startup</span>
+            <div class="sound-status on">On</div>
+          </div>
+          <div class="sound-row">
+            <span>System Shutdown</span>
+            <div class="sound-status on">On</div>
+          </div>
+          <div class="sound-row">
+            <span>Error</span>
+            <div class="sound-status on">On</div>
+          </div>
+          <div class="sound-row">
+            <span>Notification</span>
+            <div class="sound-status on">On</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub-actions">
+        <button class="btn-apply" (click)="applySound()">Apply</button>
+        <button class="btn-cancel" (click)="closePanel()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- Date and Time panel -->
+  @if (activePanel() === 'datetime') {
+    <div class="sub-panel">
+      <div class="sub-section">
+        <div class="sub-title">Current Date and Time</div>
+        <div class="datetime-display">
+          <div class="clock-display">{{ sys.settings().timezone }}</div>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Time Zone</div>
+        <select
+          class="timezone-select"
+          [value]="tempTimezone()"
+          (change)="tempTimezone.set($any($event.target).value)"
+        >
+          @for (tz of sys.timezones; track tz) {
+            <option [value]="tz" [selected]="tz === tempTimezone()">{{ tz }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Internet Time</div>
+        <div class="inet-time">
+          <div class="inet-row">
+            <div class="inet-icon"></div>
+            <span>Synchronized with time.windows.com</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub-actions">
+        <button class="btn-apply" (click)="applyDateTime()">Apply</button>
+        <button class="btn-cancel" (click)="closePanel()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- User Accounts panel -->
+  @if (activePanel() === 'accounts') {
+    <div class="sub-panel">
+      <div class="sub-section">
+        <div class="user-profile">
+          <div class="user-avatar-large"></div>
+          <div class="user-details">
+            <div class="user-current-name">{{ sys.username() }}</div>
+            <div class="user-type">Administrator</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Change User Name</div>
+        <div class="input-row">
+          <label>New name:</label>
+          <input
+            type="text"
+            class="text-input"
+            [value]="tempUsername()"
+            (input)="tempUsername.set($any($event.target).value)"
+            maxlength="32"
+          />
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-title">Account Type</div>
+        <div class="account-types">
+          <label class="radio-label">
+            <input type="radio" name="type" checked /> Administrator
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="type" /> Standard user
+          </label>
+        </div>
+      </div>
+
+      <div class="sub-actions">
+        <button class="btn-apply" (click)="applyAccounts()">Apply</button>
+        <button class="btn-cancel" (click)="closePanel()">Cancel</button>
+      </div>
+    </div>
+  }
+
 </div>

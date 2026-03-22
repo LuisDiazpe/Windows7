@@ -1,0 +1,32 @@
+<div class="pictures">
+
+  <div class="toolbar">
+    @if (selectedArt()) {
+      <button class="back-btn" (click)="closeArt()">← Back</button>
+      <span class="toolbar-title">{{ selectedArt()!.name }}</span>
+    } @else {
+      <span class="toolbar-title">Pictures</span>
+      <span class="toolbar-sub">{{ gallery.length }} items</span>
+    }
+  </div>
+
+  @if (!selectedArt()) {
+    <div class="gallery-grid">
+      @for (art of gallery; track art.id) {
+        <div class="art-thumb" (dblclick)="openArt(art)">
+          <div class="art-preview" [style.background]="getStyle(art)"></div>
+          <div class="art-name">{{ art.name }}</div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="art-fullview">
+      <div class="art-full" [style.background]="getStyle(selectedArt()!)"></div>
+      <div class="art-info">
+        <span class="art-full-name">{{ selectedArt()!.name }}</span>
+        <span class="art-type">CSS Art · Pure CSS</span>
+      </div>
+    </div>
+  }
+
+</div>

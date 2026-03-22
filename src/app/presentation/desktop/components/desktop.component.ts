@@ -10,6 +10,8 @@ import { DocumentsComponent } from '../../apps/documents/documents.component';
 import { ComputerComponent } from '../../apps/computer/computer.component';
 import { ControlPanelComponent } from '../../apps/control-panel/control-panel.component';
 import { FileSystemService, FsEntry, FsFile } from '../../../infrastructure/adapters/file-system.service';
+import { PicturesComponent } from '../../apps/pictures/pictures.component';
+
 
 @Component({
   selector: 'app-desktop',
@@ -25,6 +27,7 @@ import { FileSystemService, FsEntry, FsFile } from '../../../infrastructure/adap
     ComputerComponent,
     ControlPanelComponent,
     ComputerComponent,
+    PicturesComponent
   ],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',

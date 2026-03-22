@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WindowManagerService } from '../../../application/use-cases/window-manager/window-manager.service';
 import { WindowEntity } from '../../../domain/entities/window.entity';
+import { SystemSettingsService } from '../../../infrastructure/state/system-settings.service';
 
 @Component({
   selector: 'app-taskbar',
@@ -13,6 +14,7 @@ import { WindowEntity } from '../../../domain/entities/window.entity';
 export class TaskbarComponent implements OnInit {
   private readonly wm = inject(WindowManagerService);
 
+  readonly settings = inject(SystemSettingsService);
   readonly windows = this.wm.taskbarWindows;
   readonly time = signal('');
   readonly date = signal('');
