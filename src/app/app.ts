@@ -1,12 +1,10 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { DesktopComponent } from './presentation/desktop/components/desktop.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  standalone: true,
+  imports: [DesktopComponent],
+  template: `<app-desktop />`,
 })
-export class App {
-  protected readonly title = signal('Windows7');
-}
+export class App {}

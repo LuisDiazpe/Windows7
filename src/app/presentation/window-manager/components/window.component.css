@@ -1,0 +1,140 @@
+.window {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px 8px 4px 4px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: #f0f0f0;
+  min-width: 200px;
+  min-height: 100px;
+}
+
+.window.maximized {
+  border-radius: 0;
+  border: none;
+}
+
+.window.focused {
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 30px;
+  padding: 0 6px;
+  cursor: default;
+  user-select: none;
+  background: linear-gradient(to bottom, #bcd3e8 0%, #7fa8cc 45%, #6b96be 50%, #82aece 100%);
+}
+
+.title-bar.focused {
+  background: linear-gradient(to bottom, #4d9de0 0%, #1a6fb5 45%, #1565a8 50%, #1e78c2 100%);
+}
+
+.title-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.title-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.title-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.title-bar-buttons {
+  display: flex;
+  gap: 2px;
+}
+
+.btn-minimize,
+.btn-maximize,
+.btn-close {
+  width: 26px;
+  height: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom, #c8dff0, #a0c0dc);
+  padding: 0;
+}
+
+.btn-minimize:hover,
+.btn-maximize:hover {
+  background: linear-gradient(to bottom, #d8efff, #b0d0ec);
+}
+
+.btn-minimize:active,
+.btn-maximize:active {
+  background: linear-gradient(to bottom, #8ab0cc, #6090b0);
+}
+
+.btn-close {
+  background: linear-gradient(to bottom, #e05050, #b02020);
+}
+
+.btn-close:hover {
+  background: linear-gradient(to bottom, #ff6060, #cc3030);
+}
+
+.icon-minimize {
+  display: block;
+  width: 8px;
+  height: 2px;
+  background: white;
+  margin-top: 6px;
+}
+
+.icon-maximize {
+  display: block;
+  width: 8px;
+  height: 7px;
+  border: 1.5px solid white;
+  border-radius: 1px;
+}
+
+.icon-close {
+  display: block;
+  width: 9px;
+  height: 9px;
+  position: relative;
+}
+
+.icon-close::before,
+.icon-close::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 1.5px;
+  background: white;
+  top: 50%;
+  left: 0;
+}
+
+.icon-close::before {
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.icon-close::after {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.window-content {
+  flex: 1;
+  overflow: auto;
+  background: white;
+}

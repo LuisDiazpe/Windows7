@@ -1,0 +1,30 @@
+<div class="desktop">
+
+  <!-- iconos del escritorio -->
+  <div class="desktop-icons">
+    <div class="desktop-icon" (dblclick)="openNotepad()">
+      <div class="icon-placeholder">📝</div>
+      <span>Notepad</span>
+    </div>
+    <div class="desktop-icon" (dblclick)="openCalculator()">
+      <div class="icon-placeholder">🔢</div>
+      <span>Calculator</span>
+    </div>
+    <div class="desktop-icon" (dblclick)="openCmd()">
+      <div class="icon-placeholder">⬛</div>
+      <span>Command Prompt</span>
+    </div>
+  </div>
+
+  <!-- ventanas abiertas -->
+  @for (win of windows(); track win.id) {
+    @if (win.state !== 'minimized') {
+      <app-window [window]="win">
+        <div class="app-placeholder">
+          <p>{{ win.title }}</p>
+        </div>
+      </app-window>
+    }
+  }
+
+</div>
