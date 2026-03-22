@@ -1,6 +1,6 @@
 .desktop {
   width: 100vw;
-  height: 100vh;
+  height: calc(100vh - 40px);
   background: radial-gradient(ellipse at center, #2b7fc1 0%, #1a5fa0 50%, #0d3d6e 100%);
   position: relative;
   overflow: hidden;

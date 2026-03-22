@@ -1,0 +1,96 @@
+<div class="taskbar" (click)="closeStartMenu()">
+
+  <!-- Start button -->
+  <button
+    class="start-button"
+    [class.active]="showStartMenu()"
+    (click)="$event.stopPropagation(); toggleStartMenu()"
+  >
+    <div class="start-orb">
+      <div class="start-logo">
+        <span class="logo-tl"></span>
+        <span class="logo-tr"></span>
+        <span class="logo-bl"></span>
+        <span class="logo-br"></span>
+      </div>
+    </div>
+  </button>
+
+  <!-- Start menu -->
+  @if (showStartMenu()) {
+    <div class="start-menu" (click)="$event.stopPropagation()">
+      <div class="start-menu-header">
+        <div class="user-avatar"></div>
+        <span class="user-name">User</span>
+      </div>
+      <div class="start-menu-body">
+        <div class="start-menu-left">
+          <div class="start-menu-item" (click)="closeStartMenu()">
+            <div class="menu-icon notepad-sm"></div>
+            <span>Notepad</span>
+          </div>
+          <div class="start-menu-item" (click)="closeStartMenu()">
+            <div class="menu-icon calculator-sm"></div>
+            <span>Calculator</span>
+          </div>
+          <div class="start-menu-item" (click)="closeStartMenu()">
+            <div class="menu-icon cmd-sm"></div>
+            <span>Command Prompt</span>
+          </div>
+          <div class="start-menu-divider"></div>
+          <div class="start-menu-item" (click)="closeStartMenu()">
+            <div class="menu-icon folder-sm"></div>
+            <span>Documents</span>
+          </div>
+        </div>
+        <div class="start-menu-right">
+          <div class="start-menu-item-right">
+            <span>Documents</span>
+          </div>
+          <div class="start-menu-item-right">
+            <span>Pictures</span>
+          </div>
+          <div class="start-menu-item-right">
+            <span>Computer</span>
+          </div>
+          <div class="start-menu-item-right">
+            <span>Control Panel</span>
+          </div>
+          <div class="start-menu-divider"></div>
+          <div class="start-menu-item-right shutdown">
+            <span>Shut Down</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Taskbar windows -->
+  <div class="taskbar-windows">
+    @for (win of windows(); track win.id) {
+      <button
+        class="taskbar-btn"
+        [class.active]="win.isFocused && win.state !== 'minimized'"
+        [class.minimized]="win.state === 'minimized'"
+        (click)="onWindowClick(win)"
+      >
+        <div class="taskbar-btn-icon"></div>
+        <span class="taskbar-btn-title">{{ win.title }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- System tray -->
+  <div class="system-tray">
+    <div class="tray-icons">
+      <div class="tray-icon network"></div>
+      <div class="tray-icon volume"></div>
+    </div>
+    <div class="clock">
+      <span class="clock-time">{{ time() }}</span>
+      <span class="clock-date">{{ date() }}</span>
+    </div>
+    <div class="show-desktop" title="Show Desktop"></div>
+  </div>
+
+</div>

@@ -1,12 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { WindowManagerService } from '../../../application/use-cases/window-manager/window-manager.service';
 import { WindowComponent } from '../../window-manager/components/window.component';
+import { TaskbarComponent } from '../../taskbar/components/taskbar.component';
 
 @Component({
   selector: 'app-desktop',
   standalone: true,
-  imports: [CommonModule, WindowComponent],
+  imports: [CommonModule, WindowComponent, TaskbarComponent],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
 })
@@ -18,7 +19,7 @@ export class DesktopComponent {
   openNotepad(): void {
     this.wm.open({
       title: 'Notepad',
-      icon: 'assets/icons/notepad.png',
+      icon: '',
       x: 100,
       y: 80,
       width: 600,
@@ -30,7 +31,7 @@ export class DesktopComponent {
   openCalculator(): void {
     this.wm.open({
       title: 'Calculator',
-      icon: 'assets/icons/calculator.png',
+      icon: '',
       x: 200,
       y: 120,
       width: 320,
@@ -42,7 +43,7 @@ export class DesktopComponent {
   openCmd(): void {
     this.wm.open({
       title: 'Command Prompt',
-      icon: 'assets/icons/cmd.png',
+      icon: '',
       x: 150,
       y: 100,
       width: 680,
