@@ -54,4 +54,41 @@ export class TaskbarComponent implements OnInit {
   closeStartMenu(): void {
     this.showStartMenu.set(false);
   }
+
+  openApp(app: string): void {
+    this.closeStartMenu();
+
+    const configs: Record<string, Omit<WindowEntity, 'id' | 'zIndex' | 'isFocused' | 'state'>> = {
+      notepad: { title: 'Notepad', icon: '', x: 100, y: 80, width: 600, height: 400, component: 'notepad' },
+      calculator: { title: 'Calculator', icon: '', x: 200, y: 120, width: 320, height: 480, component: 'calculator' },
+      cmd: { title: 'Command Prompt', icon: '', x: 150, y: 100, width: 680, height: 400, component: 'cmd' },
+      documents: { title: 'Documents', icon: '', x: 120, y: 90, width: 700, height: 500, component: 'documents' },
+      pictures: { title: 'Pictures', icon: '', x: 140, y: 100, width: 700, height: 500, component: 'pictures' },
+      computer: { title: 'Computer', icon: '', x: 160, y: 80, width: 700, height: 500, component: 'computer' },
+      controlpanel: { title: 'Control Panel', icon: '', x: 180, y: 90, width: 700, height: 500, component: 'controlpanel' },
+    };
+
+    const config = configs[app];
+    if (config) this.wm.open(config);
+  }
+
+  shutdown(): void {
+    this.closeStartMenu();
+    document.body.style.transition = 'opacity 1s ease';
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+      document.body.innerHTML = `
+        <div style="
+          width:100vw; height:100vh;
+          background:#000;
+          display:flex; align-items:center; justify-content:center;
+          flex-direction:column; gap:16px;
+        ">
+          <div style="color:white; font-family:Segoe UI; font-size:18px;">
+            Shutting down...
+          </div>
+        </div>
+      `;
+    }, 1000);
+  }
 }

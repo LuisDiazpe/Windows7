@@ -29,7 +29,7 @@ import { WindowManagerService } from '../../../application/use-cases/window-mana
         (dblclick)="onMaximize()"
       >
         <div class="title-bar-left">
-          <div class="title-icon-css"></div>
+          <div class="title-icon-css" [class]="'title-icon-css icon-' + window.component"></div>
           <span class="title-text">{{ window.title }}</span>
         </div>
         <div class="title-bar-buttons">

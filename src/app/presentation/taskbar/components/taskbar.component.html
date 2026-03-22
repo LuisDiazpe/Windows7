@@ -1,6 +1,5 @@
 <div class="taskbar" (click)="closeStartMenu()">
 
-  <!-- Start button -->
   <button
     class="start-button"
     [class.active]="showStartMenu()"
@@ -16,48 +15,61 @@
     </div>
   </button>
 
-  <!-- Start menu -->
   @if (showStartMenu()) {
     <div class="start-menu" (click)="$event.stopPropagation()">
       <div class="start-menu-header">
-        <div class="user-avatar"></div>
+        <div class="user-avatar">
+          <div class="avatar-icon">
+            <div class="avatar-head"></div>
+            <div class="avatar-body"></div>
+          </div>
+        </div>
         <span class="user-name">User</span>
       </div>
       <div class="start-menu-body">
         <div class="start-menu-left">
-          <div class="start-menu-item" (click)="closeStartMenu()">
+          <div class="start-menu-item" (click)="openApp('notepad')">
             <div class="menu-icon notepad-sm"></div>
             <span>Notepad</span>
           </div>
-          <div class="start-menu-item" (click)="closeStartMenu()">
+          <div class="start-menu-item" (click)="openApp('calculator')">
             <div class="menu-icon calculator-sm"></div>
             <span>Calculator</span>
           </div>
-          <div class="start-menu-item" (click)="closeStartMenu()">
+          <div class="start-menu-item" (click)="openApp('cmd')">
             <div class="menu-icon cmd-sm"></div>
             <span>Command Prompt</span>
           </div>
           <div class="start-menu-divider"></div>
-          <div class="start-menu-item" (click)="closeStartMenu()">
+          <div class="start-menu-item" (click)="openApp('documents')">
             <div class="menu-icon folder-sm"></div>
             <span>Documents</span>
           </div>
-        </div>
-        <div class="start-menu-right">
-          <div class="start-menu-item-right">
-            <span>Documents</span>
-          </div>
-          <div class="start-menu-item-right">
+          <div class="start-menu-item" (click)="openApp('pictures')">
+            <div class="menu-icon pictures-sm"></div>
             <span>Pictures</span>
           </div>
-          <div class="start-menu-item-right">
+        </div>
+        <div class="start-menu-right">
+          <div class="start-menu-item-right" (click)="openApp('documents')">
+            <div class="menu-icon-right folder-sm"></div>
+            <span>Documents</span>
+          </div>
+          <div class="start-menu-item-right" (click)="openApp('pictures')">
+            <div class="menu-icon-right pictures-sm"></div>
+            <span>Pictures</span>
+          </div>
+          <div class="start-menu-item-right" (click)="openApp('computer')">
+            <div class="menu-icon-right computer-sm"></div>
             <span>Computer</span>
           </div>
-          <div class="start-menu-item-right">
+          <div class="start-menu-item-right" (click)="openApp('controlpanel')">
+            <div class="menu-icon-right controlpanel-sm"></div>
             <span>Control Panel</span>
           </div>
           <div class="start-menu-divider"></div>
-          <div class="start-menu-item-right shutdown">
+          <div class="start-menu-item-right shutdown" (click)="shutdown()">
+            <div class="menu-icon-right shutdown-sm"></div>
             <span>Shut Down</span>
           </div>
         </div>
@@ -65,7 +77,6 @@
     </div>
   }
 
-  <!-- Taskbar windows -->
   <div class="taskbar-windows">
     @for (win of windows(); track win.id) {
       <button
@@ -74,13 +85,12 @@
         [class.minimized]="win.state === 'minimized'"
         (click)="onWindowClick(win)"
       >
-        <div class="taskbar-btn-icon"></div>
+        <div class="taskbar-btn-icon" [class]="'taskbar-btn-icon icon-' + win.component"></div>
         <span class="taskbar-btn-title">{{ win.title }}</span>
       </button>
     }
   </div>
 
-  <!-- System tray -->
   <div class="system-tray">
     <div class="tray-icons">
       <div class="tray-icon network"></div>

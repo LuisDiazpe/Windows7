@@ -330,3 +330,404 @@
 .show-desktop:hover {
   background: rgba(255, 255, 255, 0.15);
 }
+/* User avatar */
+.avatar-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+}
+
+.avatar-head {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.avatar-body {
+  width: 28px;
+  height: 16px;
+  border-radius: 14px 14px 0 0;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Menu icons right panel */
+.menu-icon-right {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.start-menu-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.start-menu-item-right:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.start-menu-item-right.shutdown {
+  color: white;
+  font-weight: 600;
+}
+
+/* Extra icons */
+.pictures-sm {
+  background: linear-gradient(135deg, #87ceeb 0%, #4a90d9 100%);
+  border: 1px solid #2a70b9;
+  border-radius: 3px;
+  position: relative;
+}
+
+.computer-sm {
+  background: #888;
+  border: 2px solid #555;
+  border-radius: 2px;
+  position: relative;
+}
+
+.computer-sm::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 3px;
+  background: #666;
+}
+
+.controlpanel-sm {
+  background: linear-gradient(135deg, #f0c040, #d09020);
+  border: 1px solid #b07010;
+  border-radius: 3px;
+}
+
+.shutdown-sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e05050, #a02020);
+  border: 2px solid #c03030;
+  flex-shrink: 0;
+}
+/* Notepad icon en menú */
+.notepad-sm {
+  background: white;
+  border: 1px solid #aaa;
+  position: relative;
+  overflow: hidden;
+}
+
+.notepad-sm::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  height: 2px;
+  background: #888;
+  box-shadow: 0 4px 0 #888, 0 8px 0 #888;
+}
+
+.notepad-sm::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  background: #bbb;
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+/* Calculator icon en menú */
+.calculator-sm {
+  background: #3a3a3a;
+  border: 1px solid #222;
+  position: relative;
+  overflow: hidden;
+}
+
+.calculator-sm::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  height: 5px;
+  background: #7ab87a;
+  border-radius: 1px;
+}
+
+.calculator-sm::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  right: 3px;
+  height: 7px;
+  background: repeating-linear-gradient(
+    90deg,
+    #888 0px, #888 4px,
+    transparent 4px, transparent 7px
+  );
+}
+
+/* CMD icon en menú */
+.cmd-sm {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cmd-sm::before {
+  content: 'C:\\>';
+  font-size: 6px;
+  font-family: 'Courier New', monospace;
+  color: white;
+  font-weight: bold;
+}
+/*Folder / Documents */
+.folder-sm {
+  background: #f0c040;
+  border: 1px solid #d0a020;
+  border-radius: 3px 6px 3px 3px;
+  position: relative;
+}
+
+.folder-sm::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 8px;
+  height: 4px;
+  background: #f0c040;
+  border-radius: 2px 2px 0 0;
+  border: 1px solid #d0a020;
+  border-bottom: none;
+}
+
+/* Pictures */
+.pictures-sm {
+  background: linear-gradient(135deg, #87ceeb 50%, #5aaa5a 50%);
+  border: 1px solid #2a70b9;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pictures-sm::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f0d020;
+}
+
+/* Computer */
+.computer-sm {
+  background: #d0d0d0;
+  border: 2px solid #888;
+  border-radius: 2px;
+  position: relative;
+}
+
+.computer-sm::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: #4a90d9;
+  border-radius: 1px;
+}
+
+.computer-sm::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 3px;
+  background: #999;
+  border-radius: 0 0 2px 2px;
+}
+
+/* Control Panel */
+.controlpanel-sm {
+  background: #f0f0f0;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 3px;
+}
+
+.controlpanel-sm::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4a90d9;
+  box-shadow: 8px 0 0 #e05050, 0 8px 0 #50b050, 8px 8px 0 #f0a020;
+}
+
+/* Shutdown */
+.shutdown-sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ff6060, #cc2020);
+  border: 2px solid #aa1010;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.shutdown-sm::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 7px;
+  background: white;
+  border-radius: 1px;
+}
+
+.shutdown-sm::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border: 2px solid white;
+  border-radius: 50%;
+  border-top-color: transparent;
+}
+
+.taskbar-btn-icon.icon-notepad {
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.taskbar-btn-icon.icon-notepad::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 2px;
+  right: 2px;
+  height: 1.5px;
+  background: #888;
+  box-shadow: 0 3px 0 #888, 0 6px 0 #888;
+}
+
+.taskbar-btn-icon.icon-calculator {
+  background: #3a3a3a;
+  position: relative;
+  overflow: hidden;
+}
+
+.taskbar-btn-icon.icon-calculator::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  height: 4px;
+  background: #7ab87a;
+  border-radius: 1px;
+}
+
+.taskbar-btn-icon.icon-cmd {
+  background: #1a1a1a;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.taskbar-btn-icon.icon-cmd::before {
+  content: 'C:\\>';
+  font-size: 5px;
+  font-family: 'Courier New', monospace;
+  color: white;
+  font-weight: bold;
+}
+
+.taskbar-btn-icon.icon-documents {
+  background: #f0c040;
+  border-radius: 2px 5px 2px 2px;
+}
+
+.taskbar-btn-icon.icon-pictures {
+  background: linear-gradient(135deg, #87ceeb 50%, #5aaa5a 50%);
+}
+
+.taskbar-btn-icon.icon-computer {
+  background: #d0d0d0;
+}
+
+.taskbar-btn-icon.icon-controlpanel {
+  background: #f0f0f0;
+}
+
+.taskbar-btn-icon.icon-computer {
+  background: #d0d0d0;
+  border: 1px solid #999;
+  position: relative;
+  overflow: hidden;
+}
+
+.taskbar-btn-icon.icon-computer::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: #4a90d9;
+  border-radius: 1px;
+}
+
+.taskbar-btn-icon.icon-controlpanel {
+  background: #f0f0f0;
+  border: 1px solid #aaa;
+  position: relative;
+  overflow: hidden;
+}
+
+.taskbar-btn-icon.icon-controlpanel::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4a90d9;
+  box-shadow: 7px 0 0 #e05050, 0 7px 0 #50b050, 7px 7px 0 #f0a020;
+}
