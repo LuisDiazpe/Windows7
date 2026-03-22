@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { WindowManagerService } from '../../../application/use-cases/window-manager/window-manager.service';
 import { WindowComponent } from '../../window-manager/components/window.component';
 import { TaskbarComponent } from '../../taskbar/components/taskbar.component';
+import { NotepadComponent } from '../../apps/notepad/notepad.component';
 
 @Component({
   selector: 'app-desktop',
   standalone: true,
-  imports: [CommonModule, WindowComponent, TaskbarComponent],
+  imports: [CommonModule, WindowComponent, TaskbarComponent, NotepadComponent],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
 })

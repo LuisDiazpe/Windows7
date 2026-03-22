@@ -34,9 +34,13 @@
   @for (win of windows(); track win.id) {
     @if (win.state !== 'minimized') {
       <app-window [window]="win">
-        <div class="app-placeholder">
-          <p>{{ win.title }}</p>
-        </div>
+        @if (win.component === 'notepad') {
+          <app-notepad />
+        } @else {
+          <div class="app-placeholder">
+            <p>{{ win.title }}</p>
+          </div>
+        }
       </app-window>
     }
   }

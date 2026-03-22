@@ -1,0 +1,94 @@
+<div class="notepad" (click)="$event.stopPropagation()">
+
+  <!-- Menu bar -->
+  <div class="menu-bar">
+    <div class="menu-item" (click)="$event.stopPropagation(); toggleMenu('file')">
+      File
+      @if (showMenu() === 'file') {
+        <div class="dropdown">
+          <div class="dropdown-item" (click)="newFile()">New <span class="shortcut">Ctrl+N</span></div>
+          <div class="dropdown-item" (click)="openFile()">Open... <span class="shortcut">Ctrl+O</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" (click)="saveFile()">Save <span class="shortcut">Ctrl+S</span></div>
+          <div class="dropdown-item" (click)="saveAs()">Save As...</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item">Print... <span class="shortcut">Ctrl+P</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item">Exit</div>
+        </div>
+      }
+    </div>
+
+    <div class="menu-item" (click)="$event.stopPropagation(); toggleMenu('edit')">
+      Edit
+      @if (showMenu() === 'edit') {
+        <div class="dropdown">
+          <div class="dropdown-item" (click)="cut()">Cut <span class="shortcut">Ctrl+X</span></div>
+          <div class="dropdown-item" (click)="copy()">Copy <span class="shortcut">Ctrl+C</span></div>
+          <div class="dropdown-item" (click)="paste()">Paste <span class="shortcut">Ctrl+V</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" (click)="selectAll()">Select All <span class="shortcut">Ctrl+A</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" (click)="insertDateTime()">Time/Date <span class="shortcut">F5</span></div>
+        </div>
+      }
+    </div>
+
+    <div class="menu-item" (click)="$event.stopPropagation(); toggleMenu('format')">
+      Format
+      @if (showMenu() === 'format') {
+        <div class="dropdown">
+          <div class="dropdown-item" (click)="toggleWordWrap()">
+            @if (wordWrap()) { ✓ } Word Wrap
+          </div>
+          <div class="dropdown-item">Font...</div>
+        </div>
+      }
+    </div>
+
+    <div class="menu-item" (click)="$event.stopPropagation(); toggleMenu('view')">
+      View
+      @if (showMenu() === 'view') {
+        <div class="dropdown">
+          <div class="dropdown-item">Zoom In</div>
+          <div class="dropdown-item">Zoom Out</div>
+          <div class="dropdown-item">Restore Default Zoom</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item">✓ Status Bar</div>
+        </div>
+      }
+    </div>
+
+    <div class="menu-item" (click)="$event.stopPropagation(); toggleMenu('help')">
+      Help
+      @if (showMenu() === 'help') {
+        <div class="dropdown">
+          <div class="dropdown-item">View Help</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item">About Notepad</div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Text area -->
+  <textarea
+    class="notepad-textarea"
+    [class.wrap]="wordWrap()"
+    [value]="content()"
+    (input)="onContentChange($any($event.target).value)"
+    (click)="onCursorMove($event)"
+    (keyup)="onCursorMove($event)"
+    spellcheck="false"
+  ></textarea>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>Ln {{ statusLine() }}, Col {{ statusCol() }}</span>
+    @if (isDirty()) {
+      <span class="unsaved">● Unsaved changes</span>
+    }
+    <span class="status-right">{{ wordWrap() ? 'Word Wrap: On' : 'Word Wrap: Off' }}</span>
+  </div>
+
+</div>
