@@ -1,0 +1,29 @@
+<div
+  class="cmd"
+  [style.background]="bgColor()"
+  [style.color]="textColor()"
+  (click)="focusInput()"
+>
+  <div class="cmd-output" #scrollContainer>
+    @for (line of lines(); track $index) {
+      <div class="cmd-line" [class]="'line-' + line.type">{{ line.text }}</div>
+    }
+
+    <!-- Input line -->
+    <div class="cmd-input-line">
+      <span class="cmd-prompt">{{ prompt }}</span>
+      <input
+        #inputEl
+        class="cmd-input"
+        [style.color]="textColor()"
+        [value]="currentInput()"
+        (input)="currentInput.set($any($event.target).value)"
+        (keydown.enter)="onEnter()"
+        (keydown)="onKeyDown($event)"
+        autofocus
+        spellcheck="false"
+        autocomplete="off"
+      />
+    </div>
+  </div>
+</div>

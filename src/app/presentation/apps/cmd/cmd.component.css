@@ -1,0 +1,78 @@
+.cmd {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a1a;
+  color: #ffffff;
+  font-family: 'Courier New', Lucida Console, monospace;
+  font-size: 13px;
+  cursor: text;
+  padding: 4px;
+}
+
+.cmd-output {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #444 #1a1a1a;
+}
+
+.cmd-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cmd-output::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.cmd-output::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.cmd-line {
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.4;
+  min-height: 1.4em;
+}
+
+.line-input {
+  color: #ffffff;
+}
+
+.line-error {
+  color: #ff6666;
+}
+
+.line-success {
+  color: #66ff66;
+}
+
+.cmd-input-line {
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.cmd-prompt {
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+.cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: 'Courier New', Lucida Console, monospace;
+  font-size: 13px;
+  color: white;
+  caret-color: white;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}

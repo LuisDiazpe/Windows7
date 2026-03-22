@@ -38,6 +38,8 @@
           <app-notepad />
         } @else if (win.component === 'calculator') {
           <app-calculator />
+        } @else if (win.component === 'cmd'){
+          <app-cmd />
         } @else {
           <div class="app-placeholder">
             <p>{{ win.title }}</p>
