@@ -1,0 +1,49 @@
+<div class="computer">
+  <div class="toolbar">
+    <span class="toolbar-title">Computer</span>
+  </div>
+
+  <div class="section-title">Hard Disk Drives</div>
+
+  <div class="drives-list">
+    @for (drive of drives; track drive.letter) {
+      <div
+        class="drive-item"
+        [class.selected]="selectedDrive()?.letter === drive.letter"
+        (click)="selectDrive(drive)"
+        (dblclick)="openDrive(drive)"
+      >
+        <div class="drive-icon" [class]="'drive-' + drive.type"></div>
+        <div class="drive-info">
+          <div class="drive-name">
+            {{ drive.label }} ({{ drive.letter }})
+          </div>
+          @if (drive.type !== 'cd') {
+            <div class="drive-bar-container">
+              <div
+                class="drive-bar"
+                [class.drive-bar-warning]="getUsedPercent(drive) > 80"
+                [style.width.%]="getUsedPercent(drive)"
+              ></div>
+            </div>
+            <div class="drive-space">
+              {{ formatSize(drive.free) }} free of {{ formatSize(drive.total) }}
+            </div>
+          } @else {
+            <div class="drive-space">No disc inserted</div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="section-title">System Info</div>
+  <div class="system-info">
+    <div class="info-row"><span>Computer name:</span><span>WINDOWS7-PC</span></div>
+    <div class="info-row"><span>Workgroup:</span><span>WORKGROUP</span></div>
+    <div class="info-row"><span>Processor:</span><span>Intel Core i7 @ 3.40GHz</span></div>
+    <div class="info-row"><span>Memory (RAM):</span><span>8.00 GB</span></div>
+    <div class="info-row"><span>System type:</span><span>64-bit Operating System</span></div>
+    <div class="info-row"><span>Windows:</span><span>Windows 7 Professional</span></div>
+  </div>
+</div>

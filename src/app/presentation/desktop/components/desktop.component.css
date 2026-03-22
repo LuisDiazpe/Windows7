@@ -139,3 +139,41 @@
   color: #666;
   font-size: 14px;
 }
+
+.folder-icon {
+  width: 40px;
+  height: 36px;
+  background: #f0c040;
+  border: 2px solid #d0a020;
+  border-radius: 3px 8px 3px 3px;
+  position: relative;
+}
+
+.folder-icon::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 12px;
+  height: 5px;
+  background: #f0c040;
+  border: 2px solid #d0a020;
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+}
+
+.exe-icon {
+  width: 40px;
+  height: 40px;
+  background: #ddeeff;
+  border: 2px solid #88aacc;
+  border-radius: 4px;
+}
+
+.file-icon {
+  width: 40px;
+  height: 40px;
+  background: #f8f8f8;
+  border: 2px solid #ccc;
+  border-radius: 2px;
+}

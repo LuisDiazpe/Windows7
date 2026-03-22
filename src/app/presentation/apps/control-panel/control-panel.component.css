@@ -1,0 +1,76 @@
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.toolbar {
+  padding: 8px 12px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.toolbar-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  display: block;
+}
+
+.toolbar-sub {
+  font-size: 11px;
+  color: #666;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  padding: 8px;
+  overflow-y: auto;
+  flex: 1;
+  background: #eee;
+}
+
+.panel-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: white;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.panel-item:hover {
+  background: #e8f0f8;
+  border-color: #b8d0e8;
+}
+
+.panel-item.selected {
+  background: #cce0f8;
+  border-color: #88b8e8;
+}
+
+.panel-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.panel-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.panel-desc {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}

@@ -1,6 +1,8 @@
 <div class="desktop">
 
   <div class="desktop-icons">
+
+    <!-- Íconos fijos -->
     <div class="desktop-icon" (dblclick)="openNotepad()">
       <div class="icon notepad-icon">
         <div class="notepad-lines">
@@ -9,6 +11,7 @@
       </div>
       <span>Notepad</span>
     </div>
+
     <div class="desktop-icon" (dblclick)="openCalculator()">
       <div class="icon calculator-icon">
         <div class="calc-screen"></div>
@@ -19,12 +22,22 @@
       </div>
       <span>Calculator</span>
     </div>
+
     <div class="desktop-icon" (dblclick)="openCmd()">
       <div class="icon cmd-icon">
         <span class="cmd-text">C:\&gt;_</span>
       </div>
       <span>Command Prompt</span>
     </div>
+
+    <!-- Íconos dinámicos del Desktop -->
+    @for (entry of desktopEntries(); track entry.name) {
+      <div class="desktop-icon" (dblclick)="openEntry(entry)">
+        <div [class]="getDesktopIconClass(entry)"></div>
+        <span>{{ entry.name }}</span>
+      </div>
+    }
+
   </div>
 
   @for (win of windows(); track win.id) {
@@ -39,12 +52,14 @@
           <app-calculator />
         } @else if (win.component === 'cmd') {
           <app-cmd />
-        } @else if (win.component === 'documents' || win.component === 'pictures' || win.component === 'computer' || win.component === 'controlpanel') {
+        } @else if (win.component === 'documents' || win.component === 'pictures') {
           <app-documents [initialPath]="win.extra?.['path']" />
+        } @else if (win.component === 'computer') {
+          <app-computer />
+        } @else if (win.component === 'controlpanel') {
+          <app-control-panel />
         } @else {
-          <div class="app-placeholder">
-            <p>{{ win.title }}</p>
-          </div>
+          <div class="app-placeholder"><p>{{ win.title }}</p></div>
         }
       </app-window>
     }

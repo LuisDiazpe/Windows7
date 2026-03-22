@@ -1,0 +1,23 @@
+<div class="control-panel">
+  <div class="toolbar">
+    <span class="toolbar-title">Control Panel</span>
+    <span class="toolbar-sub">Adjust your computer's settings</span>
+  </div>
+
+  <div class="panel-grid">
+    @for (item of items; track item.name) {
+      <div
+        class="panel-item"
+        [class.selected]="selectedItem?.name === item.name"
+        (click)="select(item)"
+        (dblclick)="open(item)"
+      >
+        <div class="panel-icon" [style.background]="item.color"></div>
+        <div class="panel-text">
+          <div class="panel-name">{{ item.name }}</div>
+          <div class="panel-desc">{{ item.description }}</div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

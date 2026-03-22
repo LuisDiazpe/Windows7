@@ -11,6 +11,7 @@ import { WindowManagerService } from '../../../application/use-cases/window-mana
   styleUrl: './documents.component.css',
 })
 export class DocumentsComponent {
+  @Input() windowTitle?: string;
   @Input() set initialPath(path: string | undefined) {
     if (path) this.currentPath.set(path);
   }

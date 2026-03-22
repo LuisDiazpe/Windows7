@@ -1,0 +1,176 @@
+.computer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+.toolbar {
+  padding: 8px 12px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.toolbar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.section-title {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a6db5;
+  border-bottom: 1px solid #e0e8f0;
+  margin-top: 4px;
+}
+
+.drives-list {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+
+.drive-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.drive-item:hover {
+  background: #e8f0f8;
+  border-color: #b8d0e8;
+}
+
+.drive-item.selected {
+  background: #cce0f8;
+  border-color: #88b8e8;
+}
+
+.drive-icon {
+  width: 40px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  position: relative;
+}
+
+.drive-system {
+  background: linear-gradient(135deg, #d0d8e8, #a8b8d0);
+  border: 2px solid #8898b8;
+}
+
+.drive-system::before {
+  content: 'C:';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: bold;
+  color: #445;
+}
+
+.drive-data {
+  background: linear-gradient(135deg, #d8e8d0, #a8c8a0);
+  border: 2px solid #88a878;
+}
+
+.drive-data::before {
+  content: 'D:';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: bold;
+  color: #344;
+}
+
+.drive-cd {
+  background: linear-gradient(135deg, #e8e8e8, #c8c8c8);
+  border: 2px solid #a0a0a0;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+}
+
+.drive-cd::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  border: 1px solid #aaa;
+}
+
+.drive-info {
+  flex: 1;
+}
+
+.drive-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.drive-bar-container {
+  height: 8px;
+  background: #e0e0e0;
+  border: 1px solid #bbb;
+  border-radius: 1px;
+  overflow: hidden;
+  margin-bottom: 3px;
+  width: 200px;
+}
+
+.drive-bar {
+  height: 100%;
+  background: #4a90d9;
+  transition: width 0.3s;
+}
+
+.drive-bar-warning {
+  background: #e05050;
+}
+
+.drive-space {
+  font-size: 11px;
+  color: #666;
+}
+
+.system-info {
+  padding: 8px 12px;
+}
+
+.info-row {
+  display: flex;
+  gap: 16px;
+  padding: 4px 0;
+  font-size: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row span:first-child {
+  color: #555;
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.info-row span:last-child {
+  color: #1a1a1a;
+  font-weight: 500;
+}
