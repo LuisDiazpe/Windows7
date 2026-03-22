@@ -1,5 +1,5 @@
 import {
-  Component, Input, Output, EventEmitter,
+  Component, Input,
   inject, OnInit, signal, HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -29,7 +29,7 @@ import { WindowManagerService } from '../../../application/use-cases/window-mana
         (dblclick)="onMaximize()"
       >
         <div class="title-bar-left">
-          <img [src]="window.icon" class="title-icon" alt="" />
+          <div class="title-icon-css"></div>
           <span class="title-text">{{ window.title }}</span>
         </div>
         <div class="title-bar-buttons">
@@ -48,6 +48,15 @@ import { WindowManagerService } from '../../../application/use-cases/window-mana
       <div class="window-content">
         <ng-content />
       </div>
+
+      <div class="resize-n"  (mousedown)="startResize($event, 'n')"></div>
+      <div class="resize-s"  (mousedown)="startResize($event, 's')"></div>
+      <div class="resize-e"  (mousedown)="startResize($event, 'e')"></div>
+      <div class="resize-w"  (mousedown)="startResize($event, 'w')"></div>
+      <div class="resize-ne" (mousedown)="startResize($event, 'ne')"></div>
+      <div class="resize-nw" (mousedown)="startResize($event, 'nw')"></div>
+      <div class="resize-se" (mousedown)="startResize($event, 'se')"></div>
+      <div class="resize-sw" (mousedown)="startResize($event, 'sw')"></div>
     </div>
   `,
   styleUrl: './window.component.css',
@@ -60,7 +69,7 @@ export class WindowComponent implements OnInit {
   posX = signal(0);
   posY = signal(0);
   screenW = signal(globalThis.innerWidth);
-  screenH = signal(globalThis.innerHeight - 40);
+  screenH = signal(globalThis.innerHeight);
 
   private dragging = false;
   private dragOffsetX = 0;
@@ -100,4 +109,51 @@ export class WindowComponent implements OnInit {
 
   @HostListener('document:mouseup')
   onMouseUp(): void { this.dragging = false; }
+
+  startResize(event: MouseEvent, direction: string): void {
+    event.stopPropagation();
+    event.preventDefault();
+    if (this.window.state === 'maximized') return;
+
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startW = this.window.width;
+    const startH = this.window.height;
+    const startPosX = this.posX();
+    const startPosY = this.posY();
+
+    const onMove = (e: MouseEvent) => {
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      let newW = startW;
+      let newH = startH;
+      let newX = startPosX;
+      let newY = startPosY;
+
+      if (direction.includes('e')) newW = Math.max(200, startW + dx);
+      if (direction.includes('s')) newH = Math.max(100, startH + dy);
+      if (direction.includes('w')) {
+        newW = Math.max(200, startW - dx);
+        newX = startPosX + (startW - newW);
+      }
+      if (direction.includes('n')) {
+        newH = Math.max(100, startH - dy);
+        newY = startPosY + (startH - newH);
+      }
+
+      this.wm.updateSize(this.window.id, newW, newH);
+      this.wm.updatePosition(this.window.id, newX, newY);
+      this.posX.set(newX);
+      this.posY.set(newY);
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
 }

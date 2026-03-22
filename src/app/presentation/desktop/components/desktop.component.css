@@ -1,7 +1,7 @@
 .desktop {
   width: 100vw;
-  height: calc(100vh - 40px);
-  background: linear-gradient(to bottom, #1a6db5 0%, #3a9ad9 50%, #1a6db5 100%);
+  height: 100vh;
+  background: radial-gradient(ellipse at center, #2b7fc1 0%, #1a5fa0 50%, #0d3d6e 100%);
   position: relative;
   overflow: hidden;
 }
@@ -30,19 +30,105 @@
 
 .desktop-icon:hover {
   background: rgba(255, 255, 255, 0.2);
-}
-
-.desktop-icon img {
-  width: 32px;
-  height: 32px;
+  outline: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .desktop-icon span {
   font-size: 11px;
   color: white;
   text-align: center;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
   word-break: break-word;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Notepad icon */
+.notepad-icon {
+  background: white;
+  border: 2px solid #ccc;
+  position: relative;
+  padding: 4px;
+}
+
+.notepad-icon::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background: #aaa;
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+.notepad-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 6px 3px 3px 3px;
+}
+
+.notepad-lines span {
+  display: block;
+  height: 2px;
+  background: #555;
+  border-radius: 1px;
+  color: transparent;
+}
+
+/* Calculator icon */
+.calculator-icon {
+  background: #444;
+  border: 2px solid #222;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px;
+}
+
+.calc-screen {
+  width: 100%;
+  height: 10px;
+  background: #90c090;
+  border: 1px solid #333;
+  border-radius: 1px;
+}
+
+.calc-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  width: 100%;
+}
+
+.calc-buttons span {
+  display: block;
+  height: 5px;
+  background: #aaa;
+  border-radius: 1px;
+  color: transparent;
+}
+
+/* CMD icon */
+.cmd-icon {
+  background: #1a1a1a;
+  border: 2px solid #333;
+}
+
+.cmd-text {
+  font-size: 9px;
+  font-family: 'Courier New', monospace;
+  color: #ffffff;
+  font-weight: bold;
+  letter-spacing: -0.5px;
 }
 
 .app-placeholder {
@@ -52,13 +138,4 @@
   height: 100%;
   color: #666;
   font-size: 14px;
-}
-
-.icon-placeholder {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
