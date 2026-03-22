@@ -1,0 +1,82 @@
+<div class="documents" (click)="closeContextMenu()">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="tool-btn" (click)="goUp()" title="Up">
+      <div class="icon-up"></div>
+    </button>
+    <div class="address-bar">
+      @for (part of pathParts(); track part.path) {
+        <span class="breadcrumb" (click)="navigateTo(part.path)">{{ part.name }}</span>
+        <span class="breadcrumb-sep">›</span>
+      }
+    </div>
+    <button class="tool-btn" (click)="createNewFolder()" title="New Folder">
+      <div class="icon-newfolder"></div>
+      <span>New Folder</span>
+    </button>
+    <button class="tool-btn" (click)="createNewFile()" title="New File">
+      <div class="icon-newfile"></div>
+      <span>New File</span>
+    </button>
+  </div>
+
+  <!-- File list -->
+  <div class="file-list">
+    <div class="file-list-header">
+      <span class="col-name">Name</span>
+      <span class="col-date">Date modified</span>
+      <span class="col-size">Size</span>
+    </div>
+
+    <div class="file-list-body">
+      @if (entries().length === 0) {
+        <div class="empty-folder">
+          <div class="empty-icon"></div>
+          <span>This folder is empty</span>
+        </div>
+      }
+
+      @for (entry of entries(); track entry.name) {
+        <div
+          class="file-item"
+          [class.selected]="selectedEntry()?.name === entry.name"
+          (click)="selectEntry($event, entry)"
+          (dblclick)="openEntry(entry)"
+          (contextmenu)="onContextMenu($event, entry)"
+        >
+          <div class="file-icon" [class]="getFileIcon(entry)"></div>
+          <span class="file-name">{{ entry.name }}</span>
+          <span class="file-date">{{ formatDate(entry) }}</span>
+          <span class="file-size">{{ formatSize(entry) }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>{{ entries().length }} item(s)</span>
+    @if (selectedEntry()) {
+      <span>{{ selectedEntry()!.name }} selected</span>
+    }
+  </div>
+
+  <!-- Context menu -->
+  @if (contextMenu()) {
+    <div
+      class="context-menu"
+      [style.left.px]="contextMenu()!.x"
+      [style.top.px]="contextMenu()!.y"
+      (click)="$event.stopPropagation()"
+    >
+      @if (contextMenu()!.entry.type === 'file') {
+        <div class="ctx-item" (click)="openEntry(contextMenu()!.entry)">Open</div>
+        <div class="ctx-divider"></div>
+      }
+      <div class="ctx-item" (click)="renameSelected()">Rename</div>
+      <div class="ctx-item danger" (click)="deleteSelected()">Delete</div>
+    </div>
+  }
+
+</div>

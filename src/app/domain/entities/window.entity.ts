@@ -12,4 +12,5 @@ export interface WindowEntity {
   zIndex: number;
   isFocused: boolean;
   component: string;
+  extra?: Record<string, any>;
 }

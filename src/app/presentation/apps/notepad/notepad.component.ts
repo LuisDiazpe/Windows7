@@ -1,6 +1,7 @@
-import { Component, signal, computed, HostListener } from '@angular/core';
+import { Component, signal, computed, HostListener, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { FileSystemService } from '../../../infrastructure/adapters/file-system.service';
 
 @Component({
   selector: 'app-notepad',
@@ -9,7 +10,12 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './notepad.component.html',
   styleUrl: './notepad.component.css',
 })
-export class NotepadComponent {
+export class NotepadComponent implements OnInit {
+  @Input() initialFile?: string;
+  @Input() filePath?: string;
+
+  private readonly fs = inject(FileSystemService);
+
   content = signal('');
   savedContent = signal('');
   fileName = signal('Untitled');
@@ -19,6 +25,17 @@ export class NotepadComponent {
   statusCol = signal(1);
 
   readonly isDirty = computed(() => this.content() !== this.savedContent());
+
+  ngOnInit(): void {
+    if (this.initialFile && this.filePath) {
+      const content = this.fs.readFile(this.filePath, this.initialFile);
+      if (content !== null) {
+        this.content.set(content);
+        this.savedContent.set(content);
+        this.fileName.set(this.initialFile);
+      }
+    }
+  }
 
   onContentChange(value: string): void {
     this.content.set(value);
@@ -40,25 +57,26 @@ export class NotepadComponent {
     this.showMenu.set(null);
   }
 
-  // File menu
   newFile(): void {
     if (this.isDirty()) {
       if (!confirm('Do you want to save changes to ' + this.fileName() + '?')) {
         this.content.set('');
         this.savedContent.set('');
         this.fileName.set('Untitled');
+        this.filePath = undefined;
       }
     } else {
       this.content.set('');
       this.savedContent.set('');
       this.fileName.set('Untitled');
+      this.filePath = undefined;
     }
     this.closeMenus();
   }
 
   saveFile(): void {
-    const key = 'notepad_' + this.fileName();
-    localStorage.setItem(key, this.content());
+    const path = this.filePath || 'C:\\Users\\User\\Documents';
+    this.fs.writeFile(path, this.fileName(), this.content());
     this.savedContent.set(this.content());
     this.closeMenus();
   }
@@ -75,7 +93,8 @@ export class NotepadComponent {
   openFile(): void {
     const name = prompt('Open file (enter name):');
     if (name) {
-      const content = localStorage.getItem('notepad_' + name);
+      const path = this.filePath || 'C:\\Users\\User\\Documents';
+      const content = this.fs.readFile(path, name);
       if (content !== null) {
         this.content.set(content);
         this.savedContent.set(content);
@@ -87,7 +106,6 @@ export class NotepadComponent {
     this.closeMenus();
   }
 
-  // Edit menu
   selectAll(): void {
     const textarea = document.querySelector('.notepad-textarea') as HTMLTextAreaElement;
     textarea?.select();

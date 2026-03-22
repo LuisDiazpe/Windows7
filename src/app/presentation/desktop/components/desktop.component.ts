@@ -6,11 +6,13 @@ import { TaskbarComponent } from '../../taskbar/components/taskbar.component';
 import { NotepadComponent } from '../../apps/notepad/notepad.component';
 import { CalculatorComponent } from '../../apps/calculator/calculator.component';
 import { CmdComponent } from '../../apps/cmd/cmd.component';
+import { DocumentsComponent } from '../../apps/documents/documents.component';
 
 @Component({
   selector: 'app-desktop',
   standalone: true,
-  imports: [CommonModule, WindowComponent, TaskbarComponent, NotepadComponent, CalculatorComponent, CmdComponent],
+  imports: [CommonModule, WindowComponent, TaskbarComponent, NotepadComponent,
+    CalculatorComponent, CmdComponent, DocumentsComponent],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
 })
