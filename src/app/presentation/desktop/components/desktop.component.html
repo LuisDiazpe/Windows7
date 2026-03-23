@@ -30,6 +30,11 @@
       <span>Command Prompt</span>
     </div>
 
+    <div class="desktop-icon" (dblclick)="openPaint()">
+      <div class="icon paint-icon"></div>
+      <span>Paint</span>
+    </div>
+
     <!-- Íconos dinámicos del Desktop -->
     @for (entry of desktopEntries(); track entry.name) {
       <div class="desktop-icon" (dblclick)="openEntry(entry)">
@@ -60,6 +65,8 @@
           <app-computer />
         } @else if (win.component === 'controlpanel') {
           <app-control-panel />
+        } @else if (win.component === 'paint') {
+          <app-paint />
         } @else {
           <div class="app-placeholder"><p>{{ win.title }}</p></div>
         }

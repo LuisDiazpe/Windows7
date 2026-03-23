@@ -330,3 +330,22 @@
   background: #4a90d9;
   box-shadow: 7px 0 0 #e05050, 0 7px 0 #50b050, 7px 7px 0 #f0a020;
 }
+
+.icon-paint {
+  background: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.icon-paint::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+  #ff6b6b 25%, #ffd93d 25%,
+  #ffd93d 50%, #6bcb77 50%,
+  #6bcb77 75%, #4d96ff 75%
+  );
+}

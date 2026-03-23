@@ -11,7 +11,7 @@ import { ComputerComponent } from '../../apps/computer/computer.component';
 import { ControlPanelComponent } from '../../apps/control-panel/control-panel.component';
 import { FileSystemService, FsEntry, FsFile } from '../../../infrastructure/adapters/file-system.service';
 import { PicturesComponent } from '../../apps/pictures/pictures.component';
-
+import { PaintComponent } from '../../apps/paint/paint.component';
 
 @Component({
   selector: 'app-desktop',
@@ -27,7 +27,8 @@ import { PicturesComponent } from '../../apps/pictures/pictures.component';
     ComputerComponent,
     ControlPanelComponent,
     ComputerComponent,
-    PicturesComponent
+    PicturesComponent,
+    PaintComponent,
   ],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
@@ -72,6 +73,18 @@ export class DesktopComponent {
       width: 680,
       height: 400,
       component: 'cmd',
+    });
+  }
+
+  openPaint(): void {
+    this.wm.open({
+      title: 'Paint',
+      icon: '',
+      x: 80,
+      y: 60,
+      width: 900,
+      height: 650,
+      component: 'paint',
     });
   }
 

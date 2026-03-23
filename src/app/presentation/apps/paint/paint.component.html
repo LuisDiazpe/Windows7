@@ -1,0 +1,217 @@
+<div class="paint" (contextmenu)="onRightClick($event)" (click)="closeMenus()">
+
+  <!-- Menu bar -->
+  <div class="menu-bar">
+
+    <div class="menu-item" (click)="toggleMenu('file', $event)">
+      File
+      @if (showMenu() === 'file') {
+        <div class="dropdown">
+          <div class="dropdown-item" (click)="saveImage()">Save <span class="shortcut">Ctrl+S</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" (click)="clearCanvas()">New</div>
+        </div>
+      }
+    </div>
+
+    <div class="menu-item" (click)="toggleMenu('edit', $event)">
+      Edit
+      @if (showMenu() === 'edit') {
+        <div class="dropdown">
+          <div class="dropdown-item" (click)="undo()">Undo <span class="shortcut">Ctrl+Z</span></div>
+          <div class="dropdown-item" (click)="redo()">Redo <span class="shortcut">Ctrl+Y</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" (click)="pasteFromClipboard()">Paste <span class="shortcut">Ctrl+V</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" (click)="selectAll()">Select All <span class="shortcut">Ctrl+A</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item" (click)="clearCanvas()">Clear canvas</div>
+        </div>
+      }
+    </div>
+
+    <div class="menu-item" (click)="toggleMenu('image', $event)">
+      Image
+      @if (showMenu() === 'image') {
+        <div class="dropdown">
+          <div class="dropdown-label">Resize canvas</div>
+          @for (size of canvasSizes; track size.label) {
+            <div class="dropdown-item" (click)="resizeCanvas(size.w, size.h)">
+              {{ size.label }}
+              @if (canvasWidth() === size.w && canvasHeight() === size.h) {
+                <span class="shortcut">✓</span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="menu-item" (click)="toggleMenu('view', $event)">
+      View
+      @if (showMenu() === 'view') {
+        <div class="dropdown">
+          <div class="dropdown-item">✓ Tool bar</div>
+          <div class="dropdown-item">✓ Color bar</div>
+          <div class="dropdown-item">✓ Status bar</div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item">Zoom In</div>
+          <div class="dropdown-item">Zoom Out</div>
+        </div>
+      }
+    </div>
+
+    <div class="menu-item" (click)="toggleMenu('help', $event)">
+      Help
+      @if (showMenu() === 'help') {
+        <div class="dropdown">
+          <div class="dropdown-item">About Paint</div>
+        </div>
+      }
+    </div>
+
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="tool-group">
+      @for (t of tools; track t.id) {
+        <button
+          class="tool-btn"
+          [class.active]="tool() === t.id"
+          (click)="tool.set(t.id)"
+          [title]="t.label"
+        >
+          <div [class]="t.icon"></div>
+        </button>
+      }
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    <div class="tool-group">
+      @for (size of brushSizes; track size) {
+        <button
+          class="size-btn"
+          [class.active]="brushSize() === size"
+          (click)="brushSize.set(size)"
+          [title]="size + 'px'"
+        >
+          <div class="size-dot" [style.width.px]="Math.min(size, 16)" [style.height.px]="Math.min(size, 16)"></div>
+        </button>
+      }
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    @if (tool() === 'text') {
+      <div class="tool-group">
+        <select class="font-select" [value]="fontFamily()" (change)="fontFamily.set($any($event.target).value)">
+          @for (f of fontFamilies; track f) {
+            <option [value]="f">{{ f }}</option>
+          }
+        </select>
+        <input type="number" class="font-size-input" [value]="fontSize()" (change)="fontSize.set(+$any($event.target).value)" min="8" max="120" />
+      </div>
+      <div class="toolbar-sep"></div>
+    }
+
+    <div class="tool-group">
+      <button class="action-btn" (click)="undo()" title="Undo (Ctrl+Z)"><div class="icon-undo"></div></button>
+      <button class="action-btn" (click)="redo()" title="Redo (Ctrl+Y)"><div class="icon-redo"></div></button>
+      <button class="action-btn" (click)="clearCanvas()" title="Clear"><div class="icon-clear"></div></button>
+      <button class="action-btn" (click)="saveImage()" title="Save (Ctrl+S)"><div class="icon-save"></div></button>
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    <div class="color-section">
+      <div class="color-stack">
+        <div class="color-box secondary" [style.background]="secondaryColor()" (click)="openColorPicker('secondary')" title="Secondary color (right click)"></div>
+        <div class="color-box primary" [style.background]="primaryColor()" (click)="openColorPicker('primary')" title="Primary color"></div>
+        <button class="swap-btn" (click)="swapColors()" title="Swap">⇄</button>
+      </div>
+      <div class="palette">
+        @for (color of colors; track color) {
+          <div
+            class="palette-color"
+            [style.background]="color"
+            (click)="primaryColor.set(color)"
+            (contextmenu)="secondaryColor.set(color); $event.preventDefault()"
+            [title]="color"
+          ></div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas area -->
+  <div class="canvas-container" #canvasContainer>
+    <div class="canvas-wrapper">
+      <canvas
+        #canvas
+        class="paint-canvas"
+        (mousedown)="onMouseDown($event)"
+        (mousemove)="onMouseMove($event)"
+        (mouseup)="onMouseUp($event)"
+        (mouseleave)="onMouseUp($event)"
+      ></canvas>
+      <div class="canvas-handle handle-e" (mousedown)="startCanvasResize($event, 'e')"></div>
+      <div class="canvas-handle handle-s" (mousedown)="startCanvasResize($event, 's')"></div>
+      <div class="canvas-handle handle-se" (mousedown)="startCanvasResize($event, 'se')"></div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    @if (hasPastedImage()) {
+      <span class="paste-hint">📌 Drag to move · Click outside to place</span>
+    } @else {
+      <span>{{ cursorX() }}, {{ cursorY() }} px</span>
+      <span>{{ canvasWidth() }} × {{ canvasHeight() }} px</span>
+      <span>{{ tool() | titlecase }}</span>
+      <span>Size: {{ brushSize() }}px</span>
+    }
+  </div>
+
+  <!-- Text input modal -->
+  @if (showTextInput()) {
+    <div class="text-overlay" (click)="cancelText()">
+      <div class="text-modal" (click)="$event.stopPropagation()">
+        <div class="text-modal-title">Insert Text</div>
+        <textarea
+          class="text-textarea"
+          [value]="textValue()"
+          (input)="textValue.set($any($event.target).value)"
+          (keydown.enter)="$event.preventDefault(); placeText()"
+          (keydown.escape)="cancelText()"
+          placeholder="Type your text here..."
+          rows="3"
+          autofocus
+        ></textarea>
+        <div class="text-modal-actions">
+          <button class="cp-ok" (click)="placeText()">Place</button>
+          <button class="btn-cancel-text" (click)="cancelText()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Color picker modal -->
+  @if (showColorPicker()) {
+    <div class="color-picker-overlay" (click)="showColorPicker.set(false)">
+      <div class="color-picker-modal" (click)="$event.stopPropagation()">
+        <div class="cp-title">{{ pickingFor() === 'primary' ? 'Primary' : 'Secondary' }} Color</div>
+        <input
+          type="color"
+          class="native-picker"
+          [value]="pickingFor() === 'primary' ? primaryColor() : secondaryColor()"
+          (input)="pickingFor() === 'primary' ? primaryColor.set($any($event.target).value) : secondaryColor.set($any($event.target).value)"
+        />
+        <div class="cp-preview" [style.background]="pickingFor() === 'primary' ? primaryColor() : secondaryColor()"></div>
+        <button class="cp-ok" (click)="showColorPicker.set(false)">OK</button>
+      </div>
+    </div>
+  }
+
+</div>

@@ -177,3 +177,24 @@
   border: 2px solid #ccc;
   border-radius: 2px;
 }
+
+.paint-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  border: 1px solid #aaa;
+  overflow: hidden;
+  position: relative;
+  background: white;
+}
+
+.paint-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+  #ff6b6b 25%, #ffd93d 25%,
+  #ffd93d 50%, #6bcb77 50%,
+  #6bcb77 75%, #4d96ff 75%
+  );
+}
