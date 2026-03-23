@@ -21,6 +21,8 @@ export class ControlPanelComponent {
   tempUsername = signal(this.sys.username());
   tempTimezone = signal(this.sys.timezone());
   tempAccent = signal(this.sys.accentColor());
+  tempPassword = signal('');
+  tempNewPassword = signal('');
 
   readonly items = [
     { id: 'display',   name: 'Display',       desc: 'Change wallpaper and colors',      color: '#4a90d9', icon: 'icon-display' },
@@ -79,7 +81,10 @@ export class ControlPanelComponent {
   // User Accounts
   applyAccounts(): void {
     const name = this.tempUsername().trim();
-    if (name) { this.sys.setUsername(name); }
+    if (name) this.sys.setUsername(name);
+    if (this.tempNewPassword().trim()) {
+      this.sys.setPassword(this.tempNewPassword());
+    }
     this.closePanel();
   }
 

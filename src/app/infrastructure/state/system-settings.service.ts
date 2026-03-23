@@ -11,6 +11,7 @@ export interface Wallpaper {
 
 export interface SystemSettings {
   username: string;
+  password: string;
   volume: number;
   muted: boolean;
   timezone: string;
@@ -92,6 +93,7 @@ export class SystemSettingsService {
   private defaultSettings(): SystemSettings {
     return {
       username: 'User',
+      password: '',
       volume: 75,
       muted: false,
       timezone: 'UTC-05:00 — Lima, Bogotá',
@@ -133,6 +135,11 @@ export class SystemSettingsService {
 
   setAccentColor(color: string): void {
     this._settings.update(s => ({ ...s, accentColor: color }));
+    this.save();
+  }
+
+  setPassword(password: string): void {
+    this._settings.update(s => ({ ...s, password }));
     this.save();
   }
 

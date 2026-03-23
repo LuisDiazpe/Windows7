@@ -195,6 +195,16 @@
             maxlength="32"
           />
         </div>
+        <div class="input-row">
+          <label>Password:</label>
+          <input
+            type="password"
+            class="text-input"
+            placeholder="Leave empty for no password"
+            [value]="tempNewPassword()"
+            (input)="tempNewPassword.set($any($event.target).value)"
+          />
+        </div>
       </div>
 
       <div class="sub-section">

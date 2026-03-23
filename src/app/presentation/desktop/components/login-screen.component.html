@@ -1,0 +1,88 @@
+<div
+  class="login-screen"
+  [style.background]="sys.wallpaper().value"
+  [class.logging-in]="state() === 'logging-in'"
+>
+
+  @if (state() === 'lock') {
+    <div class="lock-screen" (click)="unlock()">
+      <div class="lock-time">{{ currentTime() }}</div>
+      <div class="lock-date">{{ currentDate() }}</div>
+      <div class="lock-hint">
+        <div class="lock-icon"></div>
+        <span>Click to unlock</span>
+      </div>
+    </div>
+  }
+
+  @if (state() === 'login') {
+    <div class="login-panel">
+      <div class="login-card">
+        <div class="login-avatar">
+          <div class="avatar-head"></div>
+          <div class="avatar-body"></div>
+        </div>
+        <div class="login-username">{{ sys.username() }}</div>
+        <div class="login-type">Local Account</div>
+
+        @if (sys.settings().password) {
+          <div class="password-field">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              class="password-input"
+              placeholder="Password"
+              [value]="password()"
+              (input)="password.set($any($event.target).value)"
+              (keydown.enter)="tryLogin()"
+              autofocus
+            />
+            <button
+              class="show-password"
+              (mousedown)="showPassword.set(true)"
+              (mouseup)="showPassword.set(false)"
+              (mouseleave)="showPassword.set(false)"
+            >
+              <div class="eye-icon"></div>
+            </button>
+          </div>
+
+          @if (error()) {
+            <div class="login-error">{{ error() }}</div>
+          }
+
+          <button class="login-btn" (click)="tryLogin()">
+            <div class="arrow-icon"></div>
+          </button>
+        } @else {
+          <button class="login-btn-big" (click)="tryLogin()">
+            Sign in
+          </button>
+        }
+
+        <button class="back-link" (click)="backToLock()">← Back</button>
+      </div>
+
+      <div class="login-bottom">
+        <button class="power-btn" (click)="shutdownSystem()">
+          <div class="power-icon"></div>
+          <span>Shut down</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (state() === 'logging-in') {
+    <div class="logging-in-screen">
+      <div class="logging-avatar">
+        <div class="avatar-head"></div>
+        <div class="avatar-body"></div>
+      </div>
+      <div class="logging-name">{{ sys.username() }}</div>
+      <div class="logging-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="logging-text">Welcome</div>
+    </div>
+  }
+
+</div>
