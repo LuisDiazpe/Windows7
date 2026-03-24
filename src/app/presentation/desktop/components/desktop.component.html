@@ -67,6 +67,8 @@
           <app-control-panel />
         } @else if (win.component === 'paint') {
           <app-paint />
+        } @else if (win.component === 'taskmanager') {
+          <app-task-manager />
         } @else {
           <div class="app-placeholder"><p>{{ win.title }}</p></div>
         }

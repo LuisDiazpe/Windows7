@@ -1,0 +1,409 @@
+.task-manager {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f0f0f0;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 12px;
+}
+
+.tabs {
+  display: flex;
+  background: #e0e0e0;
+  border-bottom: 1px solid #aaa;
+  flex-shrink: 0;
+}
+
+.tab {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: #333;
+  border-right: 1px solid #ccc;
+  border-bottom: 2px solid transparent;
+}
+
+.tab:hover { background: #d0d8e8; }
+
+.tab.active {
+  background: #f0f0f0;
+  border-bottom-color: #4a90d9;
+  color: #1a6db5;
+  font-weight: 600;
+}
+
+.tab-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* List styles */
+.list-header {
+  display: flex;
+  padding: 4px 8px;
+  background: #e8e8e8;
+  border-bottom: 1px solid #ccc;
+  font-weight: 600;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.processes-header {
+  display: grid;
+  grid-template-columns: 1fr 60px 60px 100px 120px;
+  gap: 4px;
+}
+
+.list-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.list-row:hover { background: #e8f0f8; }
+.list-row.selected { background: #cce0f8; }
+
+.col-task {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.col-status {
+  width: 100px;
+  color: #1a7a1a;
+  font-weight: 500;
+}
+
+.col-status.minimized { color: #888; }
+
+/* Process columns */
+.list-row.processes-header,
+.list-row:has(.col-name) {
+  display: grid;
+  grid-template-columns: 1fr 60px 60px 100px 120px;
+  gap: 4px;
+}
+
+.col-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-pid { text-align: right; color: #555; }
+.col-cpu { text-align: right; font-weight: 500; }
+.col-mem { text-align: right; color: #555; }
+.col-user { color: #555; overflow: hidden; text-overflow: ellipsis; }
+
+/* App icons */
+.app-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.app-icon-notepad { background: white; border: 1px solid #aaa; }
+.app-icon-calculator { background: #3a3a3a; border: 1px solid #222; }
+.app-icon-cmd { background: #1a1a1a; border: 1px solid #333; }
+.app-icon-paint { background: linear-gradient(135deg, #ff6b6b 25%, #ffd93d 25%, #ffd93d 50%, #6bcb77 50%, #6bcb77 75%, #4d96ff 75%); }
+.app-icon-documents { background: #f0c040; border-radius: 2px 4px 2px 2px; }
+.app-icon-pictures { background: linear-gradient(135deg, #87ceeb 50%, #5aaa5a 50%); }
+.app-icon-computer { background: #d0d0d0; border: 1px solid #999; }
+.app-icon-controlpanel { background: #f0f0f0; border: 1px solid #aaa; }
+
+/* Actions */
+.tab-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid #ccc;
+  background: #f0f0f0;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  padding: 4px 16px;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #f8f8f8, #e8e8e8);
+  cursor: pointer;
+  font-size: 12px;
+  color: #1a1a1a;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.action-btn:hover { background: linear-gradient(to bottom, #e8f0f8, #d8e8f8); }
+.action-btn:disabled { opacity: 0.5; cursor: default; }
+
+.action-btn.danger {
+  background: linear-gradient(to bottom, #f8e8e8, #e8d0d0);
+  border-color: #cc8888;
+  color: #aa2222;
+}
+
+.action-btn.danger:hover { background: linear-gradient(to bottom, #ffe0e0, #ffcccc); }
+
+/* Performance tab */
+.performance-tab {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.perf-section {
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 3px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.perf-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #00cc00;
+}
+
+.perf-graph {
+  width: 100%;
+  border: 1px solid #333;
+  border-radius: 2px;
+  display: block;
+}
+
+.perf-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.perf-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #00aa00;
+}
+
+/* Network tab */
+.network-header {
+  display: grid;
+  grid-template-columns: 180px 1fr 100px 100px;
+  padding: 4px 8px;
+  background: #e8e8e8;
+  border-bottom: 1px solid #ccc;
+  font-weight: 600;
+  color: #333;
+  font-size: 11px;
+}
+
+.network-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 100px 100px;
+  align-items: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 11px;
+}
+
+.network-bar-container {
+  height: 12px;
+  background: #e0e0e0;
+  border: 1px solid #ccc;
+  border-radius: 1px;
+  overflow: hidden;
+  margin: 0 8px;
+}
+
+.network-bar {
+  height: 100%;
+  background: #4a90d9;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.network-bar.wifi { background: #50b050; }
+
+.net-connected { color: #1a7a1a; font-weight: 500; }
+
+.network-stats {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.net-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #333;
+  padding: 3px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* Empty state */
+.empty-list {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+}
+
+/* Status bar */
+.status-bar {
+  display: flex;
+  gap: 16px;
+  padding: 4px 8px;
+  background: #e0e0e0;
+  border-top: 1px solid #aaa;
+  font-size: 11px;
+  color: #333;
+  flex-shrink: 0;
+}
+
+/* Context menu */
+.context-menu {
+  position: absolute;
+  background: #f5f5f5;
+  border: 1px solid #aaa;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+  z-index: 1000;
+  min-width: 200px;
+  padding: 2px 0;
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.ctx-item:hover {
+  background: #3a7fd4;
+  color: white;
+}
+
+.ctx-item.danger { color: #cc2020; }
+.ctx-item.danger:hover { background: #cc2020; color: white; }
+
+.ctx-divider {
+  height: 1px;
+  background: #ddd;
+  margin: 2px 0;
+}
+
+/* Context menu icons */
+.ctx-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.ctx-switch {
+  border: 2px solid currentColor;
+  border-radius: 2px;
+}
+
+.ctx-restart {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+}
+
+.ctx-debug {
+  background: currentColor;
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  margin: auto;
+}
+
+.ctx-perf {
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 12px solid currentColor;
+}
+
+.ctx-details::before, .ctx-details::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+}
+.ctx-details::before { top: 2px; }
+.ctx-details::after { top: 8px; }
+
+.ctx-folder {
+  width: 14px;
+  height: 11px;
+  border: 1.5px solid currentColor;
+  border-radius: 1px 3px 1px 1px;
+}
+
+.ctx-end {
+  width: 12px;
+  height: 12px;
+  position: relative;
+}
+.ctx-end::before, .ctx-end::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  top: 50%;
+  left: 0;
+  border-radius: 1px;
+}
+.ctx-end::before { transform: translateY(-50%) rotate(45deg); }
+.ctx-end::after { transform: translateY(-50%) rotate(-45deg); }
+
+/* Process rows grid */
+.proc-row {
+  display: grid !important;
+  grid-template-columns: 1fr 60px 60px 100px 120px;
+  gap: 4px;
+}
+
+/* Task manager icon */
+.app-icon-taskmanager {
+  background: #f0f0f0;
+  border: 1px solid #aaa;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-icon-taskmanager::before {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px; right: 2px;
+  height: 3px;
+  background: #4a90d9;
+  box-shadow: 0 4px 0 #50b050, 0 8px 0 #e05050;
+}

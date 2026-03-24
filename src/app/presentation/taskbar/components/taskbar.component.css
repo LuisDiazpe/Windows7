@@ -764,3 +764,34 @@
    #6bcb77 75%, #4d96ff 75%
    );
  }
+
+ .taskmanager-sm {
+   background: #f0f0f0;
+   border: 1px solid #aaa;
+   position: relative;
+ }
+
+ .taskmanager-sm::before {
+   content: '';
+   position: absolute;
+   top: 3px; left: 3px; right: 3px;
+   height: 3px;
+   background: #4a90d9;
+   box-shadow: 0 5px 0 #50b050, 0 10px 0 #e05050;
+ }
+
+ .taskbar-btn-icon.icon-taskmanager {
+   background: #f0f0f0;
+   border: 1px solid #aaa;
+   position: relative;
+   overflow: hidden;
+ }
+
+ .taskbar-btn-icon.icon-taskmanager::before {
+   content: '';
+   position: absolute;
+   top: 2px; left: 2px; right: 2px;
+   height: 2px;
+   background: #4a90d9;
+   box-shadow: 0 4px 0 #50b050, 0 8px 0 #e05050;
+ }

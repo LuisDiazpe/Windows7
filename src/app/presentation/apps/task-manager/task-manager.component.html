@@ -1,0 +1,195 @@
+<div class="task-manager" (click)="closeContextMenu()">
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'applications'" (click)="activeTab.set('applications')">Applications</button>
+    <button class="tab" [class.active]="activeTab() === 'processes'" (click)="activeTab.set('processes')">Processes</button>
+    <button class="tab" [class.active]="activeTab() === 'performance'" (click)="activeTab.set('performance')">Performance</button>
+    <button class="tab" [class.active]="activeTab() === 'networking'" (click)="activeTab.set('networking')">Networking</button>
+  </div>
+
+  <!-- Applications tab -->
+  @if (activeTab() === 'applications') {
+    <div class="tab-content">
+      <div class="list-header">
+        <span class="col-task">Task</span>
+        <span class="col-status">Status</span>
+      </div>
+      <div class="list-body" style="position: relative;">
+        @if (windows().length === 0) {
+          <div class="empty-list">No applications running</div>
+        }
+        @for (win of windows(); track win.id) {
+          <div
+            class="list-row"
+            [class.selected]="selectedApp()?.id === win.id"
+            (click)="selectedApp.set(win); $event.stopPropagation()"
+            (dblclick)="focusApp(win)"
+            (contextmenu)="onRightClick($event, win)"
+          >
+            <div class="col-task">
+              <div class="app-icon" [class]="'app-icon-' + win.component"></div>
+              <span>{{ win.title }}</span>
+            </div>
+            <span class="col-status" [class.minimized]="win.state === 'minimized'">
+              {{ getAppStatus(win) }}
+            </span>
+          </div>
+        }
+
+        <!-- Context menu -->
+        @if (contextMenu()) {
+          <div
+            class="context-menu"
+            [style.left.px]="contextMenu()!.x"
+            [style.top.px]="contextMenu()!.y"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="ctx-item" (click)="ctxSwitchTo(contextMenu()!.win)">
+              <div class="ctx-icon ctx-switch"></div>
+              Switch To
+            </div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item" (click)="ctxRestart(contextMenu()!.win)">
+              <div class="ctx-icon ctx-restart"></div>
+              Restart
+            </div>
+            <div class="ctx-item" (click)="ctxDebug(contextMenu()!.win)">
+              <div class="ctx-icon ctx-debug"></div>
+              Debug
+            </div>
+            <div class="ctx-item" (click)="ctxPerformanceMode(contextMenu()!.win)">
+              <div class="ctx-icon ctx-perf"></div>
+              High Performance Mode
+            </div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item" (click)="ctxGoToDetails(contextMenu()!.win)">
+              <div class="ctx-icon ctx-details"></div>
+              Go to Details
+            </div>
+            <div class="ctx-item" (click)="ctxOpenFileLocation(contextMenu()!.win)">
+              <div class="ctx-icon ctx-folder"></div>
+              Open File Location
+            </div>
+            <div class="ctx-divider"></div>
+            <div class="ctx-item danger" (click)="ctxEndTask(contextMenu()!.win)">
+              <div class="ctx-icon ctx-end"></div>
+              End Task
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="tab-actions">
+        <button
+          class="action-btn"
+          [disabled]="!selectedApp()"
+          (click)="selectedApp() && focusApp(selectedApp()!)"
+        >Switch To</button>
+        <button
+          class="action-btn danger"
+          [disabled]="!selectedApp()"
+          (click)="selectedApp() && endTask(selectedApp()!)"
+        >End Task</button>
+      </div>
+    </div>
+  }
+
+  <!-- Processes tab -->
+  @if (activeTab() === 'processes') {
+    <div class="tab-content">
+      <div class="list-header processes-header">
+        <span class="col-name">Image Name</span>
+        <span class="col-pid">PID</span>
+        <span class="col-cpu">CPU</span>
+        <span class="col-mem">Mem Usage</span>
+        <span class="col-user">Username</span>
+      </div>
+      <div class="list-body">
+        @for (proc of processes(); track proc.pid) {
+          <div
+            class="list-row proc-row"
+            [class.selected]="selectedProcess()?.pid === proc.pid"
+            (click)="selectedProcess.set(proc)"
+          >
+            <span class="col-name">{{ proc.name }}</span>
+            <span class="col-pid">{{ proc.pid }}</span>
+            <span class="col-cpu" [style.color]="getCpuColor(proc.cpu)">{{ proc.cpu }}%</span>
+            <span class="col-mem">{{ formatMemory(proc.memory) }}</span>
+            <span class="col-user">{{ proc.username }}</span>
+          </div>
+        }
+      </div>
+      <div class="tab-actions">
+        <button
+          class="action-btn danger"
+          [disabled]="!selectedProcess()"
+          (click)="selectedProcess() && endProcess(selectedProcess()!)"
+        >End Process</button>
+      </div>
+    </div>
+  }
+
+  <!-- Performance tab -->
+  @if (activeTab() === 'performance') {
+    <div class="tab-content performance-tab">
+      <div class="perf-section">
+        <div class="perf-title">CPU Usage — {{ cpuUsage() }}%</div>
+        <canvas #perfGraph class="perf-graph" width="280" height="100"></canvas>
+        <div class="perf-stats">
+          <div class="perf-stat"><span>Processes:</span><span>{{ processes().length }}</span></div>
+          <div class="perf-stat"><span>CPU Usage:</span><span>{{ cpuUsage() }}%</span></div>
+        </div>
+      </div>
+      <div class="perf-section">
+        <div class="perf-title">Memory Usage — {{ ramUsage() }}%</div>
+        <canvas #perfGraph class="perf-graph" width="280" height="100"></canvas>
+        <div class="perf-stats">
+          <div class="perf-stat"><span>Total:</span><span>{{ ramTotal }} MB</span></div>
+          <div class="perf-stat"><span>In Use:</span><span>{{ Math.round(ramTotal * ramUsage() / 100) }} MB</span></div>
+          <div class="perf-stat"><span>Available:</span><span>{{ Math.round(ramTotal * (100 - ramUsage()) / 100) }} MB</span></div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Networking tab -->
+  @if (activeTab() === 'networking') {
+    <div class="tab-content">
+      <div class="network-header">
+        <span>Adapter Name</span>
+        <span>Network Utilization</span>
+        <span>Link Speed</span>
+        <span>State</span>
+      </div>
+      <div class="network-row">
+        <span>Local Area Connection</span>
+        <div class="network-bar-container">
+          <div class="network-bar" [style.width.%]="networkReceived() / 5"></div>
+        </div>
+        <span>100 Mbps</span>
+        <span class="net-connected">Connected</span>
+      </div>
+      <div class="network-row">
+        <span>Wi-Fi</span>
+        <div class="network-bar-container">
+          <div class="network-bar wifi" [style.width.%]="networkSent() / 2"></div>
+        </div>
+        <span>54 Mbps</span>
+        <span class="net-connected">Connected</span>
+      </div>
+      <div class="network-stats">
+        <div class="net-stat"><span>Bytes Sent:</span><span>{{ networkSent() }} KB/s</span></div>
+        <div class="net-stat"><span>Bytes Received:</span><span>{{ networkReceived() }} KB/s</span></div>
+      </div>
+    </div>
+  }
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>Processes: {{ processes().length }}</span>
+    <span>CPU Usage: {{ cpuUsage() }}%</span>
+    <span>Mem Usage: {{ Math.round(ramTotal * ramUsage() / 100) }} MB / {{ ramTotal }} MB</span>
+  </div>
+
+</div>

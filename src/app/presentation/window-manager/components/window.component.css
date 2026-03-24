@@ -349,3 +349,19 @@
   #6bcb77 75%, #4d96ff 75%
   );
 }
+
+.icon-taskmanager {
+  background: #f0f0f0;
+  border: 1px solid rgba(255,255,255,0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.icon-taskmanager::before {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px; right: 2px;
+  height: 3px;
+  background: #4a90d9;
+  box-shadow: 0 4px 0 #50b050, 0 8px 0 #e05050;
+}

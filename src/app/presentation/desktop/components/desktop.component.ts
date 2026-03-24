@@ -12,6 +12,7 @@ import { ControlPanelComponent } from '../../apps/control-panel/control-panel.co
 import { FileSystemService, FsEntry, FsFile } from '../../../infrastructure/adapters/file-system.service';
 import { PicturesComponent } from '../../apps/pictures/pictures.component';
 import { PaintComponent } from '../../apps/paint/paint.component';
+import { TaskManagerComponent } from '../../apps/task-manager/task-manager.component';
 
 @Component({
   selector: 'app-desktop',
@@ -29,6 +30,7 @@ import { PaintComponent } from '../../apps/paint/paint.component';
     ComputerComponent,
     PicturesComponent,
     PaintComponent,
+    TaskManagerComponent,
   ],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
