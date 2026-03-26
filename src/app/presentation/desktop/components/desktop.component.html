@@ -35,6 +35,11 @@
       <span>Paint</span>
     </div>
 
+    <div class="desktop-icon" (dblclick)="openIE()">
+      <div class="icon ie-desktop-icon"></div>
+      <span>Internet Explorer</span>
+    </div>
+
     <!-- Íconos dinámicos del Desktop -->
     @for (entry of desktopEntries(); track entry.name) {
       <div class="desktop-icon" (dblclick)="openEntry(entry)">
@@ -57,7 +62,7 @@
           <app-calculator />
         } @else if (win.component === 'cmd') {
           <app-cmd />
-        } @else if (win.component === 'documents' ) {
+        } @else if (win.component === 'documents') {
           <app-documents [initialPath]="win.extra?.['path']" />
         } @else if (win.component === 'pictures') {
           <app-pictures />
@@ -69,6 +74,8 @@
           <app-paint />
         } @else if (win.component === 'taskmanager') {
           <app-task-manager />
+        } @else if (win.component === 'ie') {
+          <app-internet-explorer />
         } @else {
           <div class="app-placeholder"><p>{{ win.title }}</p></div>
         }

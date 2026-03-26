@@ -198,3 +198,36 @@
   #6bcb77 75%, #4d96ff 75%
   );
 }
+
+.ie-desktop-icon {
+  width: 40px;
+  height: 40px;
+  background: #1a6db5;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ie-desktop-icon::before {
+  content: 'e';
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  font-style: italic;
+  font-family: 'Times New Roman', serif;
+  position: relative;
+  z-index: 2;
+}
+
+.ie-desktop-icon::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 3px solid #f0a020;
+  border-radius: 50%;
+  border-top-color: transparent;
+  transform: rotate(-30deg);
+}

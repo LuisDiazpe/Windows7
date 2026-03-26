@@ -13,6 +13,8 @@ import { FileSystemService, FsEntry, FsFile } from '../../../infrastructure/adap
 import { PicturesComponent } from '../../apps/pictures/pictures.component';
 import { PaintComponent } from '../../apps/paint/paint.component';
 import { TaskManagerComponent } from '../../apps/task-manager/task-manager.component';
+import { InternetExplorerComponent } from '../../apps/internet-explorer/internet-explorer.component';
+
 
 @Component({
   selector: 'app-desktop',
@@ -27,10 +29,10 @@ import { TaskManagerComponent } from '../../apps/task-manager/task-manager.compo
     DocumentsComponent,
     ComputerComponent,
     ControlPanelComponent,
-    ComputerComponent,
     PicturesComponent,
     PaintComponent,
     TaskManagerComponent,
+    InternetExplorerComponent,
   ],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
@@ -118,6 +120,14 @@ export class DesktopComponent {
         });
       }
     }
+  }
+  openIE(): void {
+    this.wm.open({
+      title: 'Internet Explorer',
+      icon: '', x: 60, y: 40,
+      width: 900, height: 620,
+      component: 'ie',
+    });
   }
 
   getDesktopIconClass(entry: FsEntry): string {

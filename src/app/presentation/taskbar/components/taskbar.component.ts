@@ -70,6 +70,7 @@ export class TaskbarComponent implements OnInit {
       controlpanel: { title: 'Control Panel', icon: '', x: 180, y: 90, width: 700, height: 500, component: 'controlpanel' },
       paint: { title: 'Paint', icon: '', x: 80, y: 60, width: 900, height: 650, component: 'paint' },
       taskmanager: { title: 'Windows Task Manager', icon: '', x: 200, y: 150, width: 620, height: 480, component: 'taskmanager' },
+      ie: { title: 'Internet Explorer', icon: '', x: 60, y: 40, width: 900, height: 620, component: 'ie' },
     };
 
     const config = configs[app];

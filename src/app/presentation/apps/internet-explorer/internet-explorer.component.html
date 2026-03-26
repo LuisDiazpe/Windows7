@@ -1,0 +1,292 @@
+<div class="ie">
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    @for (tab of tabs(); track tab.id) {
+      <div
+        class="ie-tab"
+        [class.active]="tab.id === activeTabId()"
+        (click)="switchTab(tab.id)"
+      >
+        <span class="tab-favicon">{{ tab.favicon }}</span>
+        <span class="tab-title">{{ tab.title }}</span>
+        @if (tab.loading) {
+          <div class="tab-spinner"></div>
+        }
+        <button class="tab-close" (click)="closeTab(tab.id, $event)">×</button>
+      </div>
+    }
+    <button class="new-tab-btn" (click)="newTab()" title="New Tab">+</button>
+  </div>
+
+  <!-- Navigation bar -->
+  <div class="nav-bar">
+    <div class="nav-buttons">
+      <button class="nav-btn" [disabled]="!canGoBack" (click)="back()" title="Back">
+        <div class="icon-back"></div>
+      </button>
+      <button class="nav-btn" [disabled]="!canGoForward" (click)="forward()" title="Forward">
+        <div class="icon-forward"></div>
+      </button>
+      <button class="nav-btn" (click)="isLoading() ? stop() : reload()" title="Reload/Stop">
+        @if (isLoading()) {
+          <div class="icon-stop"></div>
+        } @else {
+          <div class="icon-reload"></div>
+        }
+      </button>
+      <button class="nav-btn" (click)="goHome()" title="Home">
+        <div class="icon-home"></div>
+      </button>
+    </div>
+
+    <!-- URL bar -->
+    <div class="url-bar" [class.loading]="isLoading()">
+      <div class="url-favicon">{{ activeTab()?.favicon || '🌐' }}</div>
+      <input
+        class="url-input"
+        [value]="urlInput()"
+        (input)="urlInput.set($any($event.target).value)"
+        (keydown)="onUrlKeydown($event)"
+        placeholder="Search or enter address..."
+        spellcheck="false"
+      />
+      @if (isLoading()) {
+        <div class="url-loading-bar"></div>
+      }
+      <button class="url-go-btn" (click)="go()">→</button>
+    </div>
+
+    <!-- Toolbar buttons -->
+    <div class="toolbar-right">
+      <button class="tool-btn" (click)="addToFavorites()" title="Add to favorites">★</button>
+      <button class="tool-btn" [class.active]="showFavorites()" (click)="toggleFavorites()" title="Favorites">☆</button>
+      <button class="tool-btn" [class.active]="showHistory()" (click)="toggleHistory()" title="History">🕒</button>
+      <button class="tool-btn" [class.active]="showSettings()" (click)="toggleSettings()" title="Settings">⚙</button>
+    </div>
+  </div>
+
+  <!-- Panels + Content -->
+  <div class="ie-body">
+
+    <!-- Favorites panel -->
+    @if (showFavorites()) {
+      <div class="side-panel">
+        <div class="panel-header">
+          <span>Favorites</span>
+          <button class="panel-close" (click)="showFavorites.set(false)">×</button>
+        </div>
+        <div class="panel-body">
+          @if (favorites().length === 0) {
+            <div class="panel-empty">No favorites yet</div>
+          }
+          @for (fav of favorites(); track fav.id) {
+            <div class="panel-item" (click)="navigate(fav.url)">
+              <span class="panel-favicon">{{ fav.favicon }}</span>
+              <span class="panel-item-title">{{ fav.title }}</span>
+              <button class="panel-item-del" (click)="removeFavorite(fav.id); $event.stopPropagation()">×</button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- History panel -->
+    @if (showHistory()) {
+      <div class="side-panel">
+        <div class="panel-header">
+          <span>History</span>
+          <div style="display:flex;gap:4px">
+            <button class="panel-clear" (click)="clearHistory()">Clear</button>
+            <button class="panel-close" (click)="showHistory.set(false)">×</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          @if (history().length === 0) {
+            <div class="panel-empty">No history</div>
+          }
+          @for (entry of history(); track entry.url) {
+            <div class="panel-item" (click)="navigate(entry.url)">
+              <span class="panel-favicon">🌐</span>
+              <div class="panel-item-info">
+                <span class="panel-item-title">{{ entry.title }}</span>
+                <span class="panel-item-date">{{ entry.visitedAt }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Settings panel -->
+    @if (showSettings()) {
+      <div class="side-panel">
+        <div class="panel-header">
+          <span>Settings</span>
+          <button class="panel-close" (click)="showSettings.set(false)">×</button>
+        </div>
+        <div class="panel-body" style="padding: 12px;">
+          <div class="setting-row">
+            <label>Search engine</label>
+            <select
+              class="setting-select"
+              [value]="searchEngine()"
+              (change)="searchEngine.set($any($event.target).value)"
+            >
+              <option value="google">Google</option>
+              <option value="bing">Bing</option>
+              <option value="duckduckgo">DuckDuckGo</option>
+            </select>
+          </div>
+          <div class="setting-info">
+            <p>Sites that can be loaded inside this browser:</p>
+            <ul>
+              <li>wikipedia.org</li>
+              <li>archive.org</li>
+              <li>openstreetmap.org</li>
+              <li>codepen.io</li>
+              <li>And more...</li>
+            </ul>
+            <p>Other sites will open in your real browser automatically.</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Main content -->
+    <div class="ie-content">
+
+      <!-- Start page -->
+      @if (isStartPage()) {
+        <div class="start-page">
+          <div class="start-header">
+            <div class="ie-logo">
+              <div class="ie-logo-e">e</div>
+              <div class="ie-logo-ring"></div>
+            </div>
+            <div class="start-title">
+              <span class="msn-text">Windows Internet Explorer</span>
+              <span class="msn-sub">Your browser. Your choice.</span>
+            </div>
+          </div>
+
+          <!-- Search bar -->
+          <div class="start-search">
+            <div class="search-engine-tabs">
+              <button
+                class="engine-tab"
+                [class.active]="searchEngine() === 'google'"
+                (click)="searchEngine.set('google')"
+              >Google</button>
+              <button
+                class="engine-tab"
+                [class.active]="searchEngine() === 'bing'"
+                (click)="searchEngine.set('bing')"
+              >Bing</button>
+              <button
+                class="engine-tab"
+                [class.active]="searchEngine() === 'duckduckgo'"
+                (click)="searchEngine.set('duckduckgo')"
+              >DuckDuckGo</button>
+            </div>
+            <div class="start-search-bar">
+              <input
+                class="start-search-input"
+                [value]="urlInput()"
+                (input)="urlInput.set($any($event.target).value)"
+                (keydown)="onUrlKeydown($event)"
+                placeholder="Search the web or enter an address..."
+              />
+              <button class="start-search-btn" (click)="go()">Search</button>
+            </div>
+          </div>
+
+          <!-- Quick links -->
+          <div class="quick-links">
+            <div class="quick-links-title">Quick Access</div>
+            <div class="quick-links-grid">
+              @for (link of quickLinks; track link.url) {
+                <div class="quick-link" (click)="openQuickLink(link.url)">
+                  <div class="quick-link-icon" [style.background]="link.color">
+                    {{ link.icon }}
+                  </div>
+                  <span>{{ link.name }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Favorites on start page -->
+          @if (favorites().length > 0) {
+            <div class="start-favorites">
+              <div class="quick-links-title">Favorites</div>
+              <div class="start-favs-list">
+                @for (fav of favorites().slice(0, 6); track fav.id) {
+                  <div class="start-fav-item" (click)="navigate(fav.url)">
+                    <span class="start-fav-icon">{{ fav.favicon }}</span>
+                    <span>{{ fav.title }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Blocked site message -->
+      @if (!isStartPage() && activeTab() && !activeTab()!.canEmbed && !activeTab()!.loading) {
+        <div class="blocked-page">
+          <div class="blocked-icon">🌐</div>
+          <div class="blocked-title">This page has been opened in your browser</div>
+          <div class="blocked-url">{{ activeTab()!.url }}</div>
+          <div class="blocked-desc">
+            This website cannot be displayed inside Windows Internet Explorer
+            due to security restrictions. It has been automatically opened
+            in your default browser.
+          </div>
+          <button class="blocked-btn" (click)="navigate(activeTab()!.url)">
+            Open again in browser
+          </button>
+          <button class="blocked-btn secondary" (click)="goHome()">
+            Go to Home
+          </button>
+        </div>
+      }
+
+      <!-- Loading -->
+      @if (!isStartPage() && activeTab()?.loading) {
+        <div class="loading-page">
+          <div class="loading-spinner-large"></div>
+          <div class="loading-text">Loading {{ activeTab()?.url }}...</div>
+        </div>
+      }
+
+      <!-- Embeddable iframe -->
+      @if (!isStartPage() && activeTab()?.canEmbed && !activeTab()?.loading) {
+        <iframe
+          #iframe
+          class="ie-iframe"
+          [src]="activeTab()!.safeUrl"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      }
+
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="ie-status">
+    @if (isLoading()) {
+      <span>Loading {{ activeTab()?.url }}...</span>
+    } @else if (activeTab()?.canEmbed && !isStartPage()) {
+      <span>✓ Loaded — {{ activeTab()?.url }}</span>
+    } @else if (!isStartPage()) {
+      <span>⚠ Opened in external browser — {{ activeTab()?.url }}</span>
+    } @else {
+      <span>Windows Internet Explorer — Ready</span>
+    }
+    <span class="status-right">{{ searchEngine() | titlecase }}</span>
+  </div>
+
+</div>

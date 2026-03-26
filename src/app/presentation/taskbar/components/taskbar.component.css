@@ -795,3 +795,49 @@
    background: #4a90d9;
    box-shadow: 0 4px 0 #50b050, 0 8px 0 #e05050;
  }
+
+ .ie-sm {
+   background: #1a6db5;
+   border-radius: 50%;
+   position: relative;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   color: white;
+   font-size: 14px;
+   font-weight: bold;
+   font-style: italic;
+   font-family: 'Times New Roman', serif;
+ }
+
+ .ie-sm::before { content: 'e'; }
+
+ .ie-sm::after {
+   content: '';
+   position: absolute;
+   inset: 2px;
+   border: 2px solid #f0a020;
+   border-radius: 50%;
+   border-top-color: transparent;
+   transform: rotate(-30deg);
+ }
+
+ .taskbar-btn-icon.icon-ie {
+   background: #1a6db5;
+   border-radius: 50%;
+   position: relative;
+   overflow: hidden;
+ }
+
+ .taskbar-btn-icon.icon-ie::before {
+   content: 'e';
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   color: white;
+   font-size: 10px;
+   font-weight: bold;
+   font-style: italic;
+   font-family: 'Times New Roman', serif;
+ }
