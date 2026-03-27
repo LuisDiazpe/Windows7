@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { NotificationService } from '../../../infrastructure/state/notification.service';
 import { WindowEntity, WindowState } from '../../../domain/entities/window.entity';
 import { WindowEvent } from '../../../domain/events/window.events';
 
@@ -6,6 +7,7 @@ import { WindowEvent } from '../../../domain/events/window.events';
 export class WindowManagerService {
   private readonly _windows = signal<WindowEntity[]>([]);
   private readonly _events = signal<WindowEvent[]>([]);
+  private readonly ns = inject(NotificationService);
   private _zIndexCounter = 100;
 
   readonly windows = computed(() => this._windows());
@@ -32,12 +34,15 @@ export class WindowManagerService {
     ]);
 
     this._emitEvent('WINDOW_OPENED', newWindow.id);
+    this.ns.info(config.title, `${config.title} has been opened`);
     return newWindow;
   }
 
   close(id: string): void {
+    const win = this._windows().find(w => w.id === id);
     this._windows.update((wins) => wins.filter((w) => w.id !== id));
     this._emitEvent('WINDOW_CLOSED', id);
+    if (win) this.ns.info(win.title, `${win.title} has been closed`);
   }
 
   focus(id: string): void {

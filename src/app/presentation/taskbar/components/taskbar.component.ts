@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { WindowManagerService } from '../../../application/use-cases/window-manager/window-manager.service';
 import { WindowEntity } from '../../../domain/entities/window.entity';
 import { SystemSettingsService } from '../../../infrastructure/state/system-settings.service';
+import { NotificationService } from '../../../infrastructure/state/notification.service';
 
 @Component({
   selector: 'app-taskbar',
@@ -18,7 +19,32 @@ export class TaskbarComponent implements OnInit {
   readonly windows = this.wm.taskbarWindows;
   readonly time = signal('');
   readonly date = signal('');
+  readonly sys = inject(SystemSettingsService);
   showStartMenu = signal(false);
+  readonly ns = inject(NotificationService);
+  showNotificationCenter = signal(false);
+
+  toggleNotificationCenter(): void {
+    this.showNotificationCenter.update(v => !v);
+    if (this.showNotificationCenter()) {
+      this.ns.markAllRead();
+    }
+  }
+
+  getNotifIcon(type: string): string {
+    switch (type) {
+      case 'success': return '✓';
+      case 'warning': return '⚠';
+      case 'error': return '✕';
+      default: return 'ℹ';
+    }
+  }
+
+  formatNotifTime(date: Date): string {
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: '2-digit', minute: '2-digit', hour12: true,
+    });
+  }
 
   ngOnInit(): void {
     this.updateClock();

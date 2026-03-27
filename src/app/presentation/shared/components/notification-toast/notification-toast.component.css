@@ -1,0 +1,118 @@
+.toast-container {
+  position: fixed;
+  bottom: 48px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 99998;
+  pointer-events: none;
+}
+
+.toast {
+  width: 300px;
+  background: rgba(240, 245, 255, 0.97);
+  border: 1px solid #aac0dc;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  overflow: hidden;
+  pointer-events: all;
+  animation: toast-in 0.3s ease;
+  position: relative;
+}
+
+@keyframes toast-in {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-info    { border-left: 4px solid #4a90d9; }
+.toast-success { border-left: 4px solid #1a8a1a; }
+.toast-warning { border-left: 4px solid #e09020; }
+.toast-error   { border-left: 4px solid #cc2020; }
+
+.toast-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 4px;
+}
+
+.toast-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  flex-shrink: 0;
+  color: white;
+}
+
+.toast-icon-info    { background: #4a90d9; }
+.toast-icon-success { background: #1a8a1a; }
+.toast-icon-warning { background: #e09020; }
+.toast-icon-error   { background: #cc2020; }
+
+.toast-titles {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.toast-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.toast-time {
+  font-size: 10px;
+  color: #888;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #888;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.toast-close:hover { color: #cc2020; }
+
+.toast-message {
+  padding: 0 10px 8px 38px;
+  font-size: 12px;
+  color: #333;
+  font-family: 'Segoe UI', sans-serif;
+  line-height: 1.4;
+}
+
+.toast-progress {
+  height: 3px;
+  background: rgba(0,0,0,0.08);
+}
+
+.toast-progress-bar {
+  height: 100%;
+  animation: progress-shrink linear forwards;
+  transform-origin: left;
+}
+
+.progress-info    { background: #4a90d9; }
+.progress-success { background: #1a8a1a; }
+.progress-warning { background: #e09020; }
+.progress-error   { background: #cc2020; }
+
+@keyframes progress-shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}

@@ -14,7 +14,7 @@ import { PicturesComponent } from '../../apps/pictures/pictures.component';
 import { PaintComponent } from '../../apps/paint/paint.component';
 import { TaskManagerComponent } from '../../apps/task-manager/task-manager.component';
 import { InternetExplorerComponent } from '../../apps/internet-explorer/internet-explorer.component';
-
+import { NotificationToastComponent } from '../../shared/components/notification-toast/notification-toast.component';
 
 @Component({
   selector: 'app-desktop',
@@ -33,6 +33,7 @@ import { InternetExplorerComponent } from '../../apps/internet-explorer/internet
     PaintComponent,
     TaskManagerComponent,
     InternetExplorerComponent,
+    NotificationToastComponent,
   ],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',

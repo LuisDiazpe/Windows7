@@ -2,6 +2,7 @@ import { Component, signal, computed, HostListener, Input, OnInit, inject } from
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FileSystemService } from '../../../infrastructure/adapters/file-system.service';
+import { NotificationService } from '../../../infrastructure/state/notification.service';
 
 @Component({
   selector: 'app-notepad',
@@ -15,6 +16,7 @@ export class NotepadComponent implements OnInit {
   @Input() filePath?: string;
 
   private readonly fs = inject(FileSystemService);
+  private readonly ns = inject(NotificationService);
 
   content = signal('');
   savedContent = signal('');
@@ -79,6 +81,7 @@ export class NotepadComponent implements OnInit {
     this.fs.writeFile(path, this.fileName(), this.content());
     this.savedContent.set(this.content());
     this.closeMenus();
+    this.ns.success('File saved', `"${this.fileName()}" has been saved successfully`);
   }
 
   saveAs(): void {
