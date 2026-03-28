@@ -15,6 +15,16 @@ export interface FsDirectory {
   type: 'dir';
 }
 
+export interface RecycleBinItem {
+  id: string;
+  name: string;
+  originalPath: string;
+  content?: string;
+  type: 'file' | 'dir';
+  deletedAt: string;
+  size: number;
+}
+
 export type FsEntry = FsFile | FsDirectory;
 
 @Injectable({ providedIn: 'root' })
@@ -68,6 +78,91 @@ export class FileSystemService {
 
   private save(): void {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._tree()));
+  }
+
+  private readonly RECYCLE_KEY = 'win7_recycle_bin';
+
+  private loadRecycleBin(): RecycleBinItem[] {
+    try {
+      const saved = localStorage.getItem(this.RECYCLE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  }
+
+  private saveRecycleBin(items: RecycleBinItem[]): void {
+    localStorage.setItem(this.RECYCLE_KEY, JSON.stringify(items));
+  }
+
+  getRecycleBin(): RecycleBinItem[] {
+    return this.loadRecycleBin();
+  }
+
+  moveToRecycleBin(path: string, name: string): boolean {
+    const entries = this.getEntries(path);
+    const entry = entries.find(e => e.name === name);
+    if (!entry) return false;
+
+    const content = entry.type === 'file'
+      ? localStorage.getItem(`notepad_${name}`) ?? ''
+      : undefined;
+
+    const item: RecycleBinItem = {
+      id: crypto.randomUUID(),
+      name,
+      originalPath: path,
+      content,
+      type: entry.type,
+      deletedAt: new Date().toISOString(),
+      size: (entry as any).size || 0,
+    };
+
+    const bin = this.loadRecycleBin();
+    bin.unshift(item);
+    this.saveRecycleBin(bin);
+
+    // Eliminar del filesystem
+    this._tree.update(t => ({
+      ...t,
+      [path]: t[path].filter(e => e.name !== name),
+    }));
+
+    if (entry.type === 'file') {
+      localStorage.removeItem(`notepad_${name}`);
+    } else {
+      this._tree.update(t => {
+        const newTree = { ...t };
+        delete newTree[`${path}\\${name}`];
+        return newTree;
+      });
+    }
+
+    this.save();
+    return true;
+  }
+
+  restoreFromRecycleBin(id: string): boolean {
+    const bin = this.loadRecycleBin();
+    const item = bin.find(i => i.id === id);
+    if (!item) return false;
+
+    // Restaurar al filesystem
+    if (item.type === 'file') {
+      this.writeFile(item.originalPath, item.name, item.content || '');
+    } else {
+      this.createDir(item.originalPath, item.name);
+    }
+
+    // Quitar de la papelera
+    this.saveRecycleBin(bin.filter(i => i.id !== id));
+    return true;
+  }
+
+  emptyRecycleBin(): void {
+    this.saveRecycleBin([]);
+  }
+
+  getRecycleBinCount(): number {
+    return this.loadRecycleBin().length;
   }
 
   getEntries(path: string): FsEntry[] {

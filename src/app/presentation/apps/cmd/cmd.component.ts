@@ -453,8 +453,17 @@ export class CmdComponent implements AfterViewChecked {
   private cmdDel(args: string[]): void {
     if (!args[0]) { this.addLine('The syntax of the command is incorrect.', 'error'); return; }
     const name = args[0].replace(/"/g, '');
-    if (!this.fs.deleteEntry(this.currentPath(), name)) {
-      this.addLine(`Could Not Find ${this.currentPath()}\\${name}`, 'error');
+    const permanent = args.includes('/f') || args.includes('/F');
+    if (permanent) {
+      if (!this.fs.deleteEntry(this.currentPath(), name)) {
+        this.addLine(`Could Not Find ${this.currentPath()}\\${name}`, 'error');
+      }
+    } else {
+      if (this.fs.moveToRecycleBin(this.currentPath(), name)) {
+        this.addLine(`${name} moved to Recycle Bin.`);
+      } else {
+        this.addLine(`Could Not Find ${this.currentPath()}\\${name}`, 'error');
+      }
     }
   }
 

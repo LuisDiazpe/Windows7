@@ -40,6 +40,8 @@
       <span>Internet Explorer</span>
     </div>
 
+
+
     <!-- Íconos dinámicos del Desktop -->
     @for (entry of desktopEntries(); track entry.name) {
       <div class="desktop-icon" (dblclick)="openEntry(entry)">
@@ -49,6 +51,16 @@
     }
 
   </div>
+
+  <!-- Recycle Bin fijo en esquina inferior izquierda -->
+  <div class="recycle-bin-desktop" (dblclick)="openRecycleBin()">
+    <div class="icon recycle-bin-icon" [class.recycle-bin-full]="recycleBinCount() > 0">
+      <div class="bin-body-desktop"></div>
+      <div class="bin-lid-desktop"></div>
+    </div>
+    <span>Recycle Bin</span>
+  </div>
+
 
   @for (win of windows(); track win.id) {
     @if (win.state !== 'minimized') {
@@ -76,6 +88,8 @@
           <app-task-manager />
         } @else if (win.component === 'ie') {
           <app-internet-explorer />
+        } @else if (win.component === 'recyclebin') {
+          <app-recycle-bin />
         } @else {
           <div class="app-placeholder"><p>{{ win.title }}</p></div>
         }

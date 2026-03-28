@@ -388,3 +388,31 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+/* window.component.css */
+.icon-recyclebin {
+  background: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.icon-recyclebin::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 3px;
+  width: 10px; height: 9px;
+  border: 2px solid #888;
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+}
+
+.icon-recyclebin::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 1px;
+  width: 14px; height: 2px;
+  background: #888;
+  border-radius: 1px;
+}

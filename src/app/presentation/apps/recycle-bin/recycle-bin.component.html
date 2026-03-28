@@ -1,0 +1,106 @@
+<div class="recycle-bin" (click)="closeContextMenu()">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button
+      class="tool-btn"
+      [disabled]="!selectedId()"
+      (click)="restoreSelected()"
+    >
+      <div class="icon-restore"></div>
+      Restore
+    </button>
+    <button
+      class="tool-btn"
+      [disabled]="!selectedId()"
+      (click)="deleteSelected()"
+    >
+      <div class="icon-delete"></div>
+      Delete
+    </button>
+    <div class="toolbar-sep"></div>
+    <button
+      class="tool-btn danger"
+      [disabled]="isEmpty()"
+      (click)="emptyBin()"
+    >
+      <div class="icon-empty-bin"></div>
+      Empty Recycle Bin
+    </button>
+    <div class="toolbar-info">
+      {{ items().length }} item(s)
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="list-header">
+    <span class="col-name">Name</span>
+    <span class="col-path">Original Location</span>
+    <span class="col-date">Date Deleted</span>
+    <span class="col-size">Size</span>
+    <span class="col-type">Type</span>
+  </div>
+
+  <!-- List -->
+  <div class="list-body">
+    @if (isEmpty()) {
+      <div class="empty-state">
+        <div class="empty-bin-icon">
+          <div class="bin-body"></div>
+          <div class="bin-lid"></div>
+        </div>
+        <span class="empty-title">Recycle Bin is empty</span>
+        <span class="empty-sub">Items you delete will appear here</span>
+      </div>
+    }
+
+    @for (item of items(); track item.id) {
+      <div
+        class="list-row"
+        [class.selected]="selectedId() === item.id"
+        (click)="selectedId.set(item.id); $event.stopPropagation()"
+        (dblclick)="restore(item)"
+        (contextmenu)="onRightClick($event, item)"
+      >
+        <div class="col-name">
+          <div [class]="getIcon(item)"></div>
+          <span>{{ item.name }}</span>
+        </div>
+        <span class="col-path">{{ item.originalPath }}</span>
+        <span class="col-date">{{ formatDate(item.deletedAt) }}</span>
+        <span class="col-size">{{ formatSize(item.size) }}</span>
+        <span class="col-type">{{ item.type === 'dir' ? 'Folder' : 'File' }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    @if (selectedItem()) {
+      <span>{{ selectedItem()!.name }} selected</span>
+    } @else {
+      <span>{{ items().length }} object(s)</span>
+    }
+  </div>
+
+  <!-- Context menu -->
+  @if (contextMenu()) {
+    <div
+      class="context-menu"
+      [style.left.px]="contextMenu()!.x"
+      [style.top.px]="contextMenu()!.y"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="ctx-item" (click)="restore(contextMenu()!.item); closeContextMenu()">
+        <div class="icon-restore-sm"></div>
+        Restore
+      </div>
+      <div class="ctx-divider"></div>
+      <div class="ctx-item danger" (click)="deleteSelected(); closeContextMenu()">
+        <div class="icon-delete-sm"></div>
+        Delete permanently
+      </div>
+    </div>
+  }
+
+</div>

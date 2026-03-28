@@ -15,6 +15,7 @@ import { PaintComponent } from '../../apps/paint/paint.component';
 import { TaskManagerComponent } from '../../apps/task-manager/task-manager.component';
 import { InternetExplorerComponent } from '../../apps/internet-explorer/internet-explorer.component';
 import { NotificationToastComponent } from '../../shared/components/notification-toast/notification-toast.component';
+import { RecycleBinComponent } from '../../apps/recycle-bin/recycle-bin.component';
 
 @Component({
   selector: 'app-desktop',
@@ -34,6 +35,7 @@ import { NotificationToastComponent } from '../../shared/components/notification
     TaskManagerComponent,
     InternetExplorerComponent,
     NotificationToastComponent,
+    RecycleBinComponent,
   ],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
@@ -44,6 +46,7 @@ export class DesktopComponent {
 
   readonly windows = this.wm.windows;
   readonly desktopEntries = computed(() => this.fs.getEntries('C:\\Users\\User\\Desktop'));
+  readonly recycleBinCount = computed(() => this.fs.getRecycleBinCount());
 
   openNotepad(): void {
     this.wm.open({
@@ -92,6 +95,17 @@ export class DesktopComponent {
       component: 'paint',
     });
   }
+
+  openRecycleBin(): void {
+    this.wm.open({
+      title: 'Recycle Bin',
+      icon: '', x: 100, y: 80,
+      width: 700, height: 500,
+      component: 'recyclebin',
+    });
+  }
+
+
 
   openEntry(entry: FsEntry): void {
     if (entry.type === 'dir') {

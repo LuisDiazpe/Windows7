@@ -89,8 +89,8 @@ export class DocumentsComponent {
   deleteSelected(): void {
     const entry = this.selectedEntry();
     if (!entry) return;
-    if (confirm(`Are you sure you want to delete "${entry.name}"?`)) {
-      this.fs.deleteEntry(this.currentPath(), entry.name);
+    if (confirm(`Move "${entry.name}" to Recycle Bin?`)) {
+      this.fs.moveToRecycleBin(this.currentPath(), entry.name);
       this.selectedEntry.set(null);
     }
     this.contextMenu.set(null);

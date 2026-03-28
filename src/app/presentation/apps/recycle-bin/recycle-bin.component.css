@@ -1,0 +1,319 @@
+.recycle-bin {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 12px;
+  position: relative;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: #1a1a1a;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.tool-btn:hover:not(:disabled) {
+  background: #ddeeff;
+  border-color: #aaccee;
+}
+
+.tool-btn:disabled { opacity: 0.4; cursor: default; }
+.tool-btn.danger { color: #cc2020; }
+.tool-btn.danger:hover:not(:disabled) { background: #ffe8e8; border-color: #ffaaaa; }
+
+.toolbar-sep {
+  width: 1px;
+  height: 24px;
+  background: #ccc;
+  margin: 0 4px;
+}
+
+.toolbar-info {
+  margin-left: auto;
+  color: #888;
+  font-size: 11px;
+}
+
+/* Icons in toolbar */
+.icon-restore, .icon-delete, .icon-empty-bin {
+  width: 14px;
+  height: 14px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.icon-restore {
+  border: 2px solid #1a6db5;
+  border-top-color: transparent;
+  border-radius: 50%;
+}
+.icon-restore::before {
+  content: '';
+  position: absolute;
+  top: -4px; left: -1px;
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 5px solid #1a6db5;
+}
+
+.icon-delete {
+  background: #cc2020;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+}
+.icon-delete::before, .icon-delete::after {
+  content: '';
+  position: absolute;
+  width: 60%; height: 2px;
+  background: white;
+  top: 50%; left: 20%;
+  border-radius: 1px;
+}
+.icon-delete::before { transform: rotate(45deg); }
+.icon-delete::after { transform: rotate(-45deg); }
+
+.icon-empty-bin {
+  width: 12px;
+  height: 13px;
+  border: 2px solid #cc2020;
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+  position: relative;
+}
+.icon-empty-bin::before {
+  content: '';
+  position: absolute;
+  top: -4px; left: -3px;
+  width: 16px; height: 2px;
+  background: #cc2020;
+  border-radius: 1px;
+}
+
+/* List */
+.list-header {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 80px 80px;
+  padding: 4px 8px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  font-weight: 600;
+  color: #555;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.list-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.list-row {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 80px 80px;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.list-row:hover { background: #e8f0f8; }
+.list-row.selected { background: #cce0f8; }
+
+.col-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.col-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-path, .col-date, .col-size, .col-type {
+  font-size: 11px;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* File icons */
+.icon-folder-deleted,
+.icon-txt-deleted,
+.icon-img-deleted,
+.icon-file-deleted {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  position: relative;
+}
+
+.icon-folder-deleted {
+  background: #f0c040;
+  border: 1px solid #d0a020;
+  border-radius: 2px 4px 2px 2px;
+}
+
+.icon-txt-deleted {
+  background: white;
+  border: 1px solid #aaa;
+}
+
+.icon-img-deleted {
+  background: linear-gradient(135deg, #87ceeb 50%, #5aaa5a 50%);
+  border: 1px solid #aaa;
+}
+
+.icon-file-deleted {
+  background: #f8f8f8;
+  border: 1px solid #ccc;
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  padding: 40px;
+}
+
+.empty-bin-icon {
+  position: relative;
+  width: 60px;
+  height: 70px;
+}
+
+.bin-body {
+  position: absolute;
+  bottom: 0;
+  left: 5px;
+  width: 50px;
+  height: 55px;
+  border: 3px solid #aaa;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background: white;
+}
+
+.bin-lid {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  width: 60px;
+  height: 8px;
+  background: #aaa;
+  border-radius: 3px;
+}
+
+.bin-lid::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 8px;
+  background: #aaa;
+  border-radius: 3px 3px 0 0;
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+.empty-sub {
+  font-size: 12px;
+  color: #999;
+}
+
+/* Status bar */
+.status-bar {
+  padding: 3px 8px;
+  background: #f0f0f0;
+  border-top: 1px solid #ddd;
+  font-size: 11px;
+  color: #555;
+  flex-shrink: 0;
+}
+
+/* Context menu */
+.context-menu {
+  position: absolute;
+  background: #f5f5f5;
+  border: 1px solid #aaa;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.25);
+  z-index: 1000;
+  min-width: 180px;
+  padding: 2px 0;
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.ctx-item:hover { background: #3a7fd4; color: white; }
+.ctx-item.danger { color: #cc2020; }
+.ctx-item.danger:hover { background: #cc2020; color: white; }
+
+.ctx-divider { height: 1px; background: #ddd; margin: 2px 0; }
+
+.icon-restore-sm, .icon-delete-sm {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.icon-restore-sm {
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+}
+
+.icon-delete-sm {
+  position: relative;
+}
+.icon-delete-sm::before, .icon-delete-sm::after {
+  content: '';
+  position: absolute;
+  width: 100%; height: 2px;
+  background: currentColor;
+  top: 50%; left: 0;
+  border-radius: 1px;
+}
+.icon-delete-sm::before { transform: translateY(-50%) rotate(45deg); }
+.icon-delete-sm::after { transform: translateY(-50%) rotate(-45deg); }
