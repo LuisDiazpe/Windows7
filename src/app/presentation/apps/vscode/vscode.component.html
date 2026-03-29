@@ -1,0 +1,272 @@
+<div class="vscode" [class.theme-light]="theme() === 'light'">
+
+  <!-- Title bar -->
+  <div class="vsc-titlebar">
+    <div class="vsc-title">
+      <div class="vsc-logo"></div>
+      <span>Windows Code</span>
+    </div>
+    <div class="vsc-menu">
+      <span class="vsc-menu-item">File</span>
+      <span class="vsc-menu-item">Edit</span>
+      <span class="vsc-menu-item">View</span>
+      <span class="vsc-menu-item">Run</span>
+    </div>
+    <div class="vsc-actions">
+      <button class="vsc-action-btn" (click)="toggleTheme()" [title]="theme() === 'dark' ? 'Light theme' : 'Dark theme'">
+        {{ theme() === 'dark' ? '☀' : '🌙' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="vsc-body">
+
+    <!-- Activity bar -->
+    <div class="activity-bar">
+      <button
+        class="activity-btn"
+        [class.active]="activePanel() === 'explorer'"
+        (click)="togglePanel('explorer')"
+        title="Explorer"
+      >
+        <div class="act-icon act-explorer"></div>
+      </button>
+      <button
+        class="activity-btn"
+        [class.active]="activePanel() === 'search'"
+        (click)="togglePanel('search')"
+        title="Search"
+      >
+        <div class="act-icon act-search"></div>
+      </button>
+      <div class="activity-spacer"></div>
+      <button class="activity-btn" (click)="run()" title="Run (F5 / Ctrl+Enter)" [class.running]="isRunning()">
+        <div class="act-icon act-run"></div>
+      </button>
+    </div>
+
+    <!-- Side panel -->
+    @if (activePanel()) {
+      <div class="side-panel">
+
+        @if (activePanel() === 'explorer') {
+          <div class="panel-title">EXPLORER</div>
+          <div class="panel-path">
+            <button class="path-up" (click)="goUpExplorer()" title="Go up">↑</button>
+            <span class="path-text">{{ explorerPath() }}</span>
+          </div>
+          <div class="explorer-list">
+            @for (entry of explorerEntries(); track entry.name) {
+              <div
+                class="explorer-item"
+                [class.is-dir]="entry.type === 'dir'"
+                (click)="entry.type === 'dir' ? navigateExplorer(explorerPath() + '\\' + entry.name) : null"
+                (dblclick)="entry.type === 'file' ? openFile(entry.name, explorerPath()) : null"
+              >
+                <span class="explorer-icon">{{ entry.type === 'dir' ? '📁' : '📄' }}</span>
+                <span class="explorer-name">{{ entry.name }}</span>
+              </div>
+            }
+            @if (explorerEntries().length === 0) {
+              <div class="explorer-empty">Empty folder</div>
+            }
+          </div>
+          <div class="panel-actions">
+            <button class="panel-action-btn" (click)="saveFile()" title="Save current file">
+              💾 Save
+            </button>
+          </div>
+        }
+
+        @if (activePanel() === 'search') {
+          <div class="panel-title">SEARCH</div>
+          <input
+            class="search-input"
+            placeholder="Search in file..."
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+          />
+          <div class="search-results">
+            @for (result of searchLines(); track result.line) {
+              <div class="search-result">
+                <span class="result-line">{{ result.line }}</span>
+                <span class="result-text">{{ result.text }}</span>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- Editor area -->
+    <div class="editor-area">
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        @for (tab of tabs(); track tab.id) {
+          <div
+            class="editor-tab"
+            [class.active]="tab.id === activeTabId()"
+            (click)="switchTab(tab.id)"
+          >
+            <span class="tab-lang-dot" [style.background]="getLangColor(tab.language)"></span>
+            <span class="tab-name">{{ tab.name }}</span>
+            @if (tab.modified) { <span class="tab-modified">●</span> }
+            <button class="tab-close" (click)="closeTab(tab.id, $event)">×</button>
+          </div>
+        }
+        <div class="tab-new-group">
+          @for (lang of languages; track lang.id) {
+            <button
+              class="new-lang-btn"
+              [style.color]="lang.color"
+              (click)="newTab(lang.id)"
+              [title]="'New ' + lang.label + ' file'"
+            >{{ lang.label }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="editor-toolbar">
+        <div class="toolbar-left">
+          <select
+            class="lang-select"
+            [value]="activeTab()?.language"
+            (change)="changeLanguage($any($event.target).value)"
+          >
+            @for (lang of languages; track lang.id) {
+              <option [value]="lang.id">{{ lang.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="toolbar-right">
+          @if (activeTab()?.language === 'html') {
+            <button class="toolbar-btn" (click)="openInBrowser()" title="Open in IE">
+              🌐 Open in IE
+            </button>
+          }
+          <button
+            class="toolbar-btn run-btn"
+            (click)="run()"
+            [disabled]="isRunning()"
+            title="Run (F5)"
+          >
+            @if (isRunning()) {
+              <div class="spinner"></div> Running...
+            } @else {
+              ▶ Run
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Code editor -->
+      <div class="code-editor" [class.show-preview]="showPreview()">
+        @if (!showPreview()) {
+          <div class="editor-wrapper">
+            <div class="line-numbers" #lineNumbers (scroll)="syncScroll()">
+              @for (n of lineNumbersArr(); track n) {
+                <div class="line-num" [class.active-line]="n === cursorLine()">{{ n }}</div>
+              }
+            </div>
+            <textarea
+              #editorArea
+              class="code-textarea"
+              [value]="activeTab()?.content || ''"
+              (input)="onContentChange($any($event.target).value)"
+              (keydown)="onTabKeydown($event)"
+              (click)="onCursorMove($event)"
+              (keyup)="onCursorMove($event)"
+              (scroll)="syncScroll()"
+              spellcheck="false"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+            ></textarea>
+          </div>
+        } @else {
+          <div class="preview-container">
+            <div class="preview-toolbar">
+              <span>HTML Preview</span>
+              <button class="preview-close" (click)="showPreview.set(false); showConsole.set(true)">
+                Close Preview
+              </button>
+            </div>
+            <iframe
+              #previewFrame
+              class="preview-frame"
+              [src]="previewUrl()"
+              sandbox="allow-scripts allow-same-origin allow-forms"
+            ></iframe>
+          </div>
+        }
+      </div>
+
+      <!-- Console -->
+      @if (showConsole()) {
+        <div class="console-panel">
+          <div class="console-header">
+            <div class="console-tabs">
+              <span class="console-tab active">CONSOLE</span>
+            </div>
+            <div class="console-actions">
+              <button class="console-btn" (click)="clearConsole()">Clear</button>
+              <button class="console-btn" (click)="showConsole.set(false)">×</button>
+            </div>
+          </div>
+          <div class="console-body" #consoleBody>
+            @if (consoleOutput().length === 0 && !waitingForInput()) {
+              <div class="console-empty">Press F5 or ▶ Run to execute code</div>
+            }
+            @for (entry of consoleOutput(); track $index) {
+              <div class="console-line" [class]="'console-' + entry.type">
+          <span class="console-prefix">
+            @if (entry.type === 'error') { ✕ }
+            @else if (entry.type === 'success') { ✓ }
+            @else if (entry.type === 'info') { › }
+            @else if (entry.type === 'input') { > }
+            @else { · }
+          </span>
+                <span class="console-text">{{ entry.text }}</span>
+              </div>
+            }
+
+            <!-- Input interactivo -->
+            @if (waitingForInput()) {
+              <div class="console-input-line">
+                <span class="console-input-prompt">{{ inputPrompt() }}</span>
+                <input
+                  #consoleInputEl
+                  class="console-input-field"
+                  [value]="consoleInput()"
+                  (input)="consoleInput.set($any($event.target).value)"
+                  (keydown)="onConsoleInputKeydown($event)"
+                  placeholder="Type and press Enter..."
+                  autofocus
+                />
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="vsc-statusbar">
+    <span class="status-lang" [style.background]="getLangColor(activeTab()?.language || 'javascript')">
+      <span>{{ activeLangLabel() }}</span>
+    </span>
+    <span>Ln {{ cursorLine() }}, Col {{ cursorCol() }}</span>
+    <span>{{ activeTab()?.name || 'untitled' }}</span>
+    <div class="status-right">
+      <span>UTF-8</span>
+      <span>Spaces: 2</span>
+      @if (pythonReady()) { <span class="python-ready">🐍 Python ready</span> }
+    </div>
+  </div>
+
+</div>

@@ -1020,3 +1020,16 @@
    background: #888;
    border-radius: 1px;
  }
+
+ .vscode-sm {
+   background: #007acc;
+   border-radius: 3px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   color: white;
+   font-size: 10px;
+   font-weight: bold;
+   font-family: 'Courier New', monospace;
+ }
+ .vscode-sm::before { content: '{}'; }

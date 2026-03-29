@@ -16,6 +16,7 @@ import { TaskManagerComponent } from '../../apps/task-manager/task-manager.compo
 import { InternetExplorerComponent } from '../../apps/internet-explorer/internet-explorer.component';
 import { NotificationToastComponent } from '../../shared/components/notification-toast/notification-toast.component';
 import { RecycleBinComponent } from '../../apps/recycle-bin/recycle-bin.component';
+import { VscodeComponent } from '../../apps/vscode/vscode.component';
 
 @Component({
   selector: 'app-desktop',
@@ -36,6 +37,7 @@ import { RecycleBinComponent } from '../../apps/recycle-bin/recycle-bin.componen
     InternetExplorerComponent,
     NotificationToastComponent,
     RecycleBinComponent,
+    VscodeComponent,
   ],
   templateUrl: './desktop.component.html',
   styleUrl: './desktop.component.css',
@@ -93,6 +95,15 @@ export class DesktopComponent {
       width: 900,
       height: 650,
       component: 'paint',
+    });
+  }
+
+  openVscode(): void {
+    this.wm.open({
+      title: 'Windows Code',
+      icon: '', x: 40, y: 30,
+      width: 1000, height: 680,
+      component: 'vscode',
     });
   }
 

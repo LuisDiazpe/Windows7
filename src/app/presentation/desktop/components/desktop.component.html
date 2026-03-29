@@ -40,6 +40,11 @@
       <span>Internet Explorer</span>
     </div>
 
+    <div class="desktop-icon" (dblclick)="openVscode()">
+      <div class="icon vscode-icon"></div>
+      <span>Windows Code</span>
+    </div>
+
 
 
     <!-- Íconos dinámicos del Desktop -->
@@ -90,6 +95,8 @@
           <app-internet-explorer />
         } @else if (win.component === 'recyclebin') {
           <app-recycle-bin />
+        } @else if (win.component === 'vscode') {
+          <app-vscode />
         } @else {
           <div class="app-placeholder"><p>{{ win.title }}</p></div>
         }

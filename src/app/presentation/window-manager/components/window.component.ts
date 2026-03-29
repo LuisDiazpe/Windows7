@@ -69,7 +69,7 @@ export class WindowComponent implements OnInit {
   posX = signal(0);
   posY = signal(0);
   screenW = signal(globalThis.innerWidth);
-  screenH = signal(globalThis.innerHeight);
+  screenH = signal(globalThis.innerHeight - 40);
 
   private dragging = false;
   private dragOffsetX = 0;

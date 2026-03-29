@@ -97,6 +97,7 @@ export class TaskbarComponent implements OnInit {
       paint: { title: 'Paint', icon: '', x: 80, y: 60, width: 900, height: 650, component: 'paint' },
       taskmanager: { title: 'Windows Task Manager', icon: '', x: 200, y: 150, width: 620, height: 480, component: 'taskmanager' },
       ie: { title: 'Internet Explorer', icon: '', x: 60, y: 40, width: 900, height: 620, component: 'ie' },
+      vscode: { title: 'Windows Code', icon: '', x: 40, y: 30, width: 1000, height: 680, component: 'vscode' },
     };
 
     const config = configs[app];
