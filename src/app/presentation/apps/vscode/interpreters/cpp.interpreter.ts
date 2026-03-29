@@ -24,10 +24,77 @@ export class CppInterpreter {
   }
 
   private wrapCodeForInteractiveInput(code: string): string {
-    return code.replace(
-      /(cin(\s*>>\s*\w+)+)/g,
-      (match) => `if (!(${match})) { std::cout << "\\n__NEEDS_MORE_INPUT__" << std::endl; exit(0); }`
+    const helper = `
+#include <limits>
+#include <sstream>
+static bool __eof_hit = false;
+
+template<typename T>
+void __safe_cin_val(T& val) {
+    if (__eof_hit) { std::cout << "__NEEDS_MORE_INPUT__" << std::endl; exit(0); }
+    if (!(std::cin >> val)) {
+        __eof_hit = true;
+        std::cout << "__NEEDS_MORE_INPUT__" << std::endl;
+        exit(0);
+    }
+}
+
+void __safe_getline_val(std::istream& is, std::string& val) {
+    if (__eof_hit) { std::cout << "__NEEDS_MORE_INPUT__" << std::endl; exit(0); }
+    if (!std::getline(is, val)) {
+        __eof_hit = true;
+        std::cout << "__NEEDS_MORE_INPUT__" << std::endl;
+        exit(0);
+    }
+}
+
+void __safe_ignore() {
+    if (!__eof_hit) {
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\\n');
+    }
+}
+
+`;
+
+    let result = code;
+    const lastIncludeIdx = result.lastIndexOf('#include');
+    if (lastIncludeIdx !== -1) {
+      const endOfLine = result.indexOf('\n', lastIncludeIdx);
+      result = result.slice(0, endOfLine + 1) + helper + result.slice(endOfLine + 1);
+    } else {
+      result = helper + result;
+    }
+
+    // Reemplazar getline(cin, var) ANTES de tocar cin >>
+    result = result.replace(
+      /\bgetline\s*\(\s*cin\s*,\s*(\w+)\s*\)/g,
+      '__safe_getline_val(cin, $1)'
     );
+
+    // Reemplazar cin.ignore(...)
+    result = result.replace(
+      /\bcin\.ignore\s*\([^)]*\)\s*;/g,
+      '__safe_ignore();'
+    );
+
+    // Reemplazar cin >> expr encadenado
+    // expr puede ser: variable simple (x), array con índice (v[i]), campo (obj.campo)
+    // Capturar cada operando completo incluyendo [] y .
+    result = result.replace(
+      /(?<!::\s*)\bcin\s*((?:>>\s*(?:\w+(?:\[[\w\s+\-*\/]+\])*(?:\.\w+)*)\s*)+)/g,
+      (match, chain) => {
+        // Extraer cada operando completo: palabra + posible [índice] + posible .campo
+        const operands: string[] = [];
+        const opRegex = />>\s*((?:\w+(?:\[[\w\s+\-*\/]+\])*(?:\.\w+)*))/g;
+        let m;
+        while ((m = opRegex.exec(chain)) !== null) {
+          operands.push(m[1].trim());
+        }
+        return operands.map(v => `__safe_cin_val(${v})`).join('; ');
+      }
+    );
+
+    return result;
   }
 
   private extractInitialOutput(code: string): string[] {
@@ -52,21 +119,29 @@ export class CppInterpreter {
     return lines;
   }
 
-  // Compara carácter a carácter y retorna solo el texto nuevo
-  private splitNewOutput(fullStdout: string, alreadyShownText: string): string[] {
-    let newText = fullStdout;
+  private normalize(s: string): string {
+    return s.replace(/\r/g, '').replace(/[ \t]+$/gm, '');
+  }
 
-    if (newText.startsWith(alreadyShownText)) {
-      newText = newText.slice(alreadyShownText.length);
+  private splitNewOutput(fullStdout: string, shownText: string): string[] {
+    const normalFull = this.normalize(fullStdout);
+    const normalShown = this.normalize(shownText);
+
+    let newText = '';
+
+    if (normalFull.startsWith(normalShown)) {
+      newText = normalFull.slice(normalShown.length);
     } else {
-      // Encontrar punto de divergencia carácter a carácter
       let commonLen = 0;
-      const minLen = Math.min(newText.length, alreadyShownText.length);
-      while (commonLen < minLen && newText[commonLen] === alreadyShownText[commonLen]) {
+      const minLen = Math.min(normalFull.length, normalShown.length);
+      while (commonLen < minLen && normalFull[commonLen] === normalShown[commonLen]) {
         commonLen++;
       }
-      newText = newText.slice(commonLen);
+      newText = normalFull.slice(commonLen);
     }
+
+    // Saltar \n inicial si queda
+    if (newText.startsWith('\n')) newText = newText.slice(1);
 
     return newText
       .split('\n')
@@ -113,11 +188,10 @@ export class CppInterpreter {
         return { output };
       }
 
-      // Código wrapeado para detectar EOF en cin
       const wrappedCode = this.wrapCodeForInteractiveInput(code);
 
-      // Probe para verificar compilación solamente
-      const probeResult = await this.submitToJudge0(wrappedCode, '\n', 3);
+      // Probe para verificar compilación
+      const probeResult = await this.submitToJudge0(wrappedCode, '', 3);
       if (!probeResult) throw new Error('Timeout');
 
       const compileRaw = probeResult.compile_output
@@ -129,16 +203,17 @@ export class CppInterpreter {
         return { output, error: 'Error de compilación' };
       }
 
-      // Mostrar output inicial (antes del primer cin)
+      // Mostrar output inicial antes del primer cin
       const initialLines = this.extractInitialOutput(code);
       initialLines.forEach(line => {
         output.push(line);
         this.emit(line);
       });
 
-      // shownText es el texto acumulado ya mostrado como string
-      // lo usamos para comparar con el stdout completo de Judge0
-      let shownText = initialLines.join('\n') + (initialLines.length ? '\n' : '');
+      // shownText como string normalizado para comparar con stdout de Judge0
+      let shownText = this.normalize(
+        initialLines.join('\n') + (initialLines.length ? '\n' : '')
+      );
 
       const collectedInputs: string[] = [];
       let finished = false;
@@ -158,31 +233,32 @@ export class CppInterpreter {
           ? decodeURIComponent(escape(atob(result.stderr))) : '';
 
         const needsMoreInput = stdoutRaw.includes('__NEEDS_MORE_INPUT__');
-        const cleanStdout = stdoutRaw
-          .replace(/__NEEDS_MORE_INPUT__\n?/g, '')
-          .trimEnd();
 
-        // Obtener solo las líneas nuevas comparando con texto ya mostrado
+        // Normalizar y limpiar el marcador
+        const cleanStdout = this.normalize(
+          stdoutRaw.replace(/__NEEDS_MORE_INPUT__\n?/g, '').trimEnd()
+        );
+
         const newLines = this.splitNewOutput(cleanStdout, shownText);
 
-        // Mostrar líneas nuevas y actualizar shownText
         if (newLines.length > 0) {
           newLines.forEach((line: string) => {
             output.push(line);
             this.emit(line);
           });
-          // shownText pasa a ser el stdout completo actual
-          shownText = cleanStdout + '\n';
+          // Actualizar shownText con el stdout completo normalizado actual
+          shownText = cleanStdout;
+          if (!shownText.endsWith('\n')) shownText += '\n';
         }
 
         if (needsMoreInput) {
-          // Continuar pidiendo inputs — no marcar finished
+          // Continuar pidiendo inputs
 
         } else if (result.status?.id === 3) {
           finished = true;
 
         } else if (result.status?.id === 4) {
-          // TLE — continuar pidiendo inputs
+          // TLE — continuar
 
         } else {
           if (stderrRaw.trim()) {
