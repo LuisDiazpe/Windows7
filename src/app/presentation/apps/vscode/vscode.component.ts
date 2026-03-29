@@ -205,7 +205,11 @@ export class VscodeComponent implements AfterViewInit {
   cursorCol = signal(1);
   pythonReady = signal(false);
 
-  private pyodide: any = null;
+
+  private pythonWorker: Worker | null = null;
+  private pythonWorkerReady = false;
+  private pythonSabControl: Int32Array | null = null;
+  private pythonSabData: Uint8Array | null = null;
 
   readonly activeTab = computed(() =>
     this.tabs().find(t => t.id === this.activeTabId())
@@ -498,102 +502,56 @@ void loop() {
   }
 
   private async runPython(code: string): Promise<void> {
-    if (!this.pyodide) {
+    if (!this.pythonWorker) {
       this.addConsole('info', 'Cargando Python (Pyodide)...');
-      try {
-        const pyodideModule = await (window as any).loadPyodide({
-          indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/',
-        });
-        this.pyodide = pyodideModule;
-        this.pythonReady.set(true);
-        this.addConsole('success', 'Python listo!');
-      } catch (e: any) {
-        this.addConsole('error', 'Error cargando Python: ' + e.message);
-        return;
-      }
+
+      this.pythonWorker = new Worker('/assets/python.worker.js');
+
+      await new Promise<void>((resolve, reject) => {
+        this.pythonWorker!.onmessage = (e) => {
+          if (e.data.type === 'ready') {
+            const sab = e.data.sab;
+            this.pythonSabControl = new Int32Array(sab, 0, 1);
+            this.pythonSabData = new Uint8Array(sab, 4);
+            this.pythonWorkerReady = true;
+            this.pythonReady.set(true);
+            this.addConsole('success', 'Python listo!');
+            resolve();
+          }
+        };
+        this.pythonWorker!.onerror = (e) => {
+          this.addConsole('error', 'Error iniciando worker: ' + e.message);
+          reject(e);
+        };
+        this.pythonWorker!.postMessage({ type: 'init' });
+      });
     }
 
-    try {
-      // Cola de resolvers: cada input() agrega una Promise y espera su valor
-      const inputQueue: Array<(value: string) => void> = [];
+    return new Promise<void>((resolve) => {
+      this.pythonWorker!.onmessage = async (e) => {
+        if (e.data.type === 'input_request') {
+          const value = await this.requestInput(e.data.prompt);
+          const encoded = new TextEncoder().encode(value);
+          this.pythonSabData!.fill(0);
+          this.pythonSabData!.set(encoded);
+          Atomics.store(this.pythonSabControl!, 0, 1);
+          Atomics.notify(this.pythonSabControl!, 0);
 
-      // Python llama esto cuando necesita input
-      (window as any).__pythonRequestInput__ = (prompt: string) => {
-        // Mostrar el prompt en consola
-        this.requestInput(prompt).then(value => {
-          // Cuando el usuario responde, resolver la primera Promise en cola
-          if (inputQueue.length > 0) {
-            const resolver = inputQueue.shift()!;
-            resolver(value);
-          }
-        });
+        } else if (e.data.type === 'output') {
+          // muestra cada print() en tiempo real
+          this.addConsole('output', e.data.text);
+
+        } else if (e.data.type === 'done') {
+          resolve();
+
+        } else if (e.data.type === 'error') {
+          this.addConsole('error', e.data.error);
+          resolve();
+        }
       };
 
-      // Instalar input() en Python como función async
-      await this.pyodide.runPythonAsync(`
-import sys
-import builtins
-from js import window
-import asyncio
-
-async def _async_input(prompt=''):
-    from js import Promise
-    import js
-
-    loop = asyncio.get_event_loop()
-    future = loop.create_future()
-
-    def _resolve(value):
-        if not future.done():
-            loop.call_soon_threadsafe(future.set_result, str(value))
-
-    # Registrar resolver en JS
-    js.globalThis.__pythonResolveInput__ = _resolve
-
-    # Pedir input a JS
-    window.__pythonRequestInput__(str(prompt) if prompt else '')
-
-    # Esperar resultado
-    result = await future
-    return result
-
-builtins.input = lambda prompt='': asyncio.get_event_loop().run_until_complete(_async_input(prompt))
-    `);
-
-      // Exponer el resolver para que JS pueda llamarlo
-      (window as any).__pythonResolveInput__ = null;
-
-      // Ejecutar código del usuario
-      await this.pyodide.runPythonAsync(`
-import sys
-from io import StringIO
-import asyncio
-
-_buf = StringIO()
-sys.stdout = _buf
-sys.stderr = _buf
-
-async def __main__():
-    try:
-${code.split('\n').map((l: string) => '        ' + l).join('\n')}
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-
-await __main__()
-
-sys.stdout = sys.__stdout__
-sys.stderr = sys.__stderr__
-    `);
-
-      const captured: string = this.pyodide.runPython(`_buf.getvalue()`);
-      captured.split('\n').forEach((line: string) => {
-        if (line !== '') this.addConsole('output', line);
-      });
-
-    } catch (e: any) {
-      this.addConsole('error', e.message);
-    }
+      this.pythonWorker!.postMessage({ type: 'run', code });
+    });
   }
 
   private runHtml(code: string): void {
@@ -612,8 +570,9 @@ sys.stderr = sys.__stderr__
 
   private async runCpp(code: string): Promise<void> {
     const interpreter = new CppInterpreter();
-    const result = interpreter.execute(code);
-    result.output.forEach(line => this.addConsole('output', line));
+    interpreter.setOutputHandler((line: string) => this.addConsole('output', line));
+    interpreter.setInputHandler((prompt: string) => this.requestInput(prompt));
+    const result = await interpreter.executeAsync(code);
     if (result.error) this.addConsole('error', `Error: ${result.error}`);
   }
 

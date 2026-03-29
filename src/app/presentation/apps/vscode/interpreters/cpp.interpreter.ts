@@ -4,184 +4,250 @@ export interface CppResult {
 }
 
 export class CppInterpreter {
-  private variables: Record<string, any> = {};
-  private functions: Record<string, { params: string[]; body: string }> = {};
-  private output: string[] = [];
+  private outputHandler: ((line: string) => void) | null = null;
+  private inputHandler: ((prompt: string) => Promise<string>) | null = null;
 
-  execute(code: string): CppResult {
-    this.variables = {};
-    this.functions = {};
-    this.output = [];
+  private readonly JUDGE0_URL = 'https://judge0-ce.p.rapidapi.com';
+  private readonly RAPIDAPI_KEY = '1d3b05a535msh1e37d229f049dd1p1fb16ajsn4a406bbbb519';
+  private readonly CPP_LANGUAGE_ID = 54;
 
-    try {
-      // Remove comments
-      code = code.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
-
-      // Extract functions
-      this.extractFunctions(code);
-
-      // Find and run main
-      if (this.functions['main']) {
-        this.executeBlock(this.functions['main'].body);
-      } else {
-        throw new Error('No main() function found');
-      }
-
-      return { output: this.output };
-    } catch (e: any) {
-      return { output: this.output, error: e.message };
-    }
+  setOutputHandler(handler: (line: string) => void): void {
+    this.outputHandler = handler;
   }
 
-  private extractFunctions(code: string): void {
-    const fnRegex = /(\w+)\s+(\w+)\s*\(([^)]*)\)\s*\{/g;
-    let match;
-    while ((match = fnRegex.exec(code)) !== null) {
-      const name = match[2];
-      const params = match[3].split(',').map(p => p.trim().split(/\s+/).pop() || '');
-      const start = match.index + match[0].length;
-      const body = this.extractBlock(code, start);
-      this.functions[name] = { params, body };
-    }
+  setInputHandler(handler: (prompt: string) => Promise<string>): void {
+    this.inputHandler = handler;
   }
 
-  private extractBlock(code: string, start: number): string {
-    let depth = 1;
-    let i = start;
-    while (i < code.length && depth > 0) {
-      if (code[i] === '{') depth++;
-      if (code[i] === '}') depth--;
-      i++;
-    }
-    return code.slice(start, i - 1);
+  private emit(line: string): void {
+    if (this.outputHandler) this.outputHandler(line);
   }
 
-  private executeBlock(code: string): void {
-    const lines = code.split(';').map(l => l.trim()).filter(l => l);
+  private wrapCodeForInteractiveInput(code: string): string {
+    return code.replace(
+      /(cin(\s*>>\s*\w+)+)/g,
+      (match) => `if (!(${match})) { std::cout << "\\n__NEEDS_MORE_INPUT__" << std::endl; exit(0); }`
+    );
+  }
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+  private extractInitialOutput(code: string): string[] {
+    const codeLines = code.split('\n');
+    const lines: string[] = [];
 
-      // cout
+    for (let i = 0; i < codeLines.length; i++) {
+      const line = codeLines[i].trim();
+      if (/\bcin\s*>>/.test(line) || /getline\s*\(\s*cin/.test(line)) break;
       if (line.includes('cout')) {
-        this.execCout(line); continue;
-      }
-
-      // Variable declaration
-      const declMatch = line.match(/^(int|float|double|string|char|bool|long)\s+(\w+)\s*(?:=\s*(.+))?$/);
-      if (declMatch) {
-        const varName = declMatch[2];
-        const val = declMatch[3] ? this.evalExpr(declMatch[3]) : 0;
-        this.variables[varName] = val;
-        continue;
-      }
-
-      // Assignment
-      const assignMatch = line.match(/^(\w+)\s*(?:\+=|-=|\*=|\/=|=)\s*(.+)$/);
-      if (assignMatch) {
-        const varName = assignMatch[1];
-        const op = line.includes('+=') ? '+=' : line.includes('-=') ? '-=' :
-          line.includes('*=') ? '*=' : line.includes('/=') ? '/=' : '=';
-        const val = this.evalExpr(assignMatch[2]);
-        if (op === '=') this.variables[varName] = val;
-        else if (op === '+=') this.variables[varName] = (this.variables[varName] || 0) + val;
-        else if (op === '-=') this.variables[varName] = (this.variables[varName] || 0) - val;
-        else if (op === '*=') this.variables[varName] = (this.variables[varName] || 0) * val;
-        else if (op === '/=') this.variables[varName] = (this.variables[varName] || 0) / val;
-        continue;
-      }
-
-      // For loop
-      if (line.startsWith('for')) {
-        this.execFor(line, lines, i); continue;
-      }
-
-      // While loop
-      if (line.startsWith('while')) {
-        this.execWhile(line, lines, i); continue;
-      }
-
-      // If statement
-      if (line.startsWith('if')) {
-        this.execIf(line, lines, i); continue;
-      }
-
-      // Return
-      if (line.startsWith('return')) continue;
-    }
-  }
-
-  private execCout(line: string): void {
-    const parts = line.split('<<').slice(1);
-    const result = parts.map(p => {
-      p = p.trim();
-      if (p === 'endl' || p === '"\\n"') return '\n';
-      if (p.startsWith('"') && p.endsWith('"')) return p.slice(1, -1);
-      return String(this.evalExpr(p));
-    }).join('');
-    result.split('\n').forEach(line => {
-      if (line !== '') this.output.push(line);
-    });
-  }
-
-  private execFor(line: string, lines: string[], idx: number): void {
-    const match = line.match(/for\s*\(\s*(?:int\s+)?(\w+)\s*=\s*(.+?)\s*;\s*(.+?)\s*;\s*(.+?)\s*\)/);
-    if (!match) return;
-    const varName = match[1];
-    this.variables[varName] = this.evalExpr(match[2]);
-    const cond = match[3];
-    const inc = match[4];
-    let iterations = 0;
-
-    while (this.evalCondition(cond) && iterations < 10000) {
-      // Execute the next block if available
-      iterations++;
-      if (inc.includes('++')) this.variables[varName]++;
-      else if (inc.includes('--')) this.variables[varName]--;
-      else {
-        const m = inc.match(/(\w+)\s*([+\-*\/]=)\s*(.+)/);
-        if (m) {
-          const op = m[2];
-          const val = this.evalExpr(m[3]);
-          if (op === '+=') this.variables[m[1]] += val;
-          else if (op === '-=') this.variables[m[1]] -= val;
+        const match = line.match(/"([^"]*)"/);
+        if (match) {
+          const text = match[1]
+            .replace(/\\n/g, '\n')
+            .replace(/\\t/g, '\t');
+          text.split('\n').forEach(l => {
+            if (l !== '') lines.push(l);
+          });
         }
       }
     }
+    return lines;
   }
 
-  private execWhile(line: string, lines: string[], idx: number): void {
-    const match = line.match(/while\s*\((.+)\)/);
-    if (!match) return;
-    let iterations = 0;
-    while (this.evalCondition(match[1]) && iterations < 10000) {
-      iterations++;
+  // Compara carácter a carácter y retorna solo el texto nuevo
+  private splitNewOutput(fullStdout: string, alreadyShownText: string): string[] {
+    let newText = fullStdout;
+
+    if (newText.startsWith(alreadyShownText)) {
+      newText = newText.slice(alreadyShownText.length);
+    } else {
+      // Encontrar punto de divergencia carácter a carácter
+      let commonLen = 0;
+      const minLen = Math.min(newText.length, alreadyShownText.length);
+      while (commonLen < minLen && newText[commonLen] === alreadyShownText[commonLen]) {
+        commonLen++;
+      }
+      newText = newText.slice(commonLen);
+    }
+
+    return newText
+      .split('\n')
+      .map((l: string) => l.trimEnd())
+      .filter((l: string) => l.trim() !== '');
+  }
+
+  async executeAsync(code: string): Promise<CppResult> {
+    const output: string[] = [];
+
+    try {
+      this.emit('Compilando C++...');
+
+      const needsInput = /\bcin\s*>>/.test(code) || /getline\s*\(\s*cin/.test(code);
+
+      if (!needsInput || !this.inputHandler) {
+        const result = await this.submitToJudge0(code, '', 5);
+        if (!result) throw new Error('Timeout');
+
+        const compileRaw = result.compile_output
+          ? decodeURIComponent(escape(atob(result.compile_output))) : '';
+        if (compileRaw.trim()) {
+          compileRaw.split('\n').forEach((line: string) => {
+            if (line.trim()) this.emit('Compile Error: ' + line);
+          });
+          return { output, error: 'Error de compilación' };
+        }
+
+        const stdoutRaw = result.stdout
+          ? decodeURIComponent(escape(atob(result.stdout))) : '';
+        stdoutRaw.split('\n').forEach((line: string) => {
+          if (line !== '') { output.push(line); this.emit(line); }
+        });
+
+        const stderrRaw = result.stderr
+          ? decodeURIComponent(escape(atob(result.stderr))) : '';
+        if (stderrRaw.trim()) {
+          stderrRaw.split('\n').forEach((line: string) => {
+            if (line.trim()) this.emit('Error: ' + line);
+          });
+          return { output, error: 'Runtime Error' };
+        }
+
+        return { output };
+      }
+
+      // Código wrapeado para detectar EOF en cin
+      const wrappedCode = this.wrapCodeForInteractiveInput(code);
+
+      // Probe para verificar compilación solamente
+      const probeResult = await this.submitToJudge0(wrappedCode, '\n', 3);
+      if (!probeResult) throw new Error('Timeout');
+
+      const compileRaw = probeResult.compile_output
+        ? decodeURIComponent(escape(atob(probeResult.compile_output))) : '';
+      if (compileRaw.trim()) {
+        compileRaw.split('\n').forEach((line: string) => {
+          if (line.trim()) this.emit('Compile Error: ' + line);
+        });
+        return { output, error: 'Error de compilación' };
+      }
+
+      // Mostrar output inicial (antes del primer cin)
+      const initialLines = this.extractInitialOutput(code);
+      initialLines.forEach(line => {
+        output.push(line);
+        this.emit(line);
+      });
+
+      // shownText es el texto acumulado ya mostrado como string
+      // lo usamos para comparar con el stdout completo de Judge0
+      let shownText = initialLines.join('\n') + (initialLines.length ? '\n' : '');
+
+      const collectedInputs: string[] = [];
+      let finished = false;
+
+      while (!finished) {
+        const val = await this.inputHandler('');
+        collectedInputs.push(val);
+
+        const stdin = collectedInputs.join('\n') + '\n';
+        const result = await this.submitToJudge0(wrappedCode, stdin, 5);
+
+        if (!result) throw new Error('Timeout');
+
+        const stdoutRaw = result.stdout
+          ? decodeURIComponent(escape(atob(result.stdout))) : '';
+        const stderrRaw = result.stderr
+          ? decodeURIComponent(escape(atob(result.stderr))) : '';
+
+        const needsMoreInput = stdoutRaw.includes('__NEEDS_MORE_INPUT__');
+        const cleanStdout = stdoutRaw
+          .replace(/__NEEDS_MORE_INPUT__\n?/g, '')
+          .trimEnd();
+
+        // Obtener solo las líneas nuevas comparando con texto ya mostrado
+        const newLines = this.splitNewOutput(cleanStdout, shownText);
+
+        // Mostrar líneas nuevas y actualizar shownText
+        if (newLines.length > 0) {
+          newLines.forEach((line: string) => {
+            output.push(line);
+            this.emit(line);
+          });
+          // shownText pasa a ser el stdout completo actual
+          shownText = cleanStdout + '\n';
+        }
+
+        if (needsMoreInput) {
+          // Continuar pidiendo inputs — no marcar finished
+
+        } else if (result.status?.id === 3) {
+          finished = true;
+
+        } else if (result.status?.id === 4) {
+          // TLE — continuar pidiendo inputs
+
+        } else {
+          if (stderrRaw.trim()) {
+            stderrRaw.split('\n').forEach((line: string) => {
+              if (line.trim()) this.emit('Error: ' + line);
+            });
+            return { output, error: 'Runtime Error' };
+          }
+          finished = true;
+        }
+      }
+
+      return { output };
+
+    } catch (e: any) {
+      return { output, error: e.message };
     }
   }
 
-  private execIf(line: string, lines: string[], idx: number): void {
-    const match = line.match(/if\s*\((.+)\)/);
-    if (!match) return;
-    // Basic if - just evaluate condition
-    this.evalCondition(match[1]);
+  private async submitToJudge0(code: string, stdin: string, cpuLimit: number = 2): Promise<any> {
+    const submitResponse = await fetch(
+      `${this.JUDGE0_URL}/submissions?base64_encoded=true&wait=false`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-RapidAPI-Key': this.RAPIDAPI_KEY,
+          'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com',
+        },
+        body: JSON.stringify({
+          language_id: this.CPP_LANGUAGE_ID,
+          source_code: btoa(unescape(encodeURIComponent(code))),
+          stdin: stdin ? btoa(unescape(encodeURIComponent(stdin))) : '',
+          cpu_time_limit: cpuLimit,
+          wall_time_limit: cpuLimit + 2,
+          memory_limit: 128000,
+        }),
+      }
+    );
+
+    if (!submitResponse.ok) {
+      throw new Error(`Judge0 error: ${submitResponse.status} ${submitResponse.statusText}`);
+    }
+
+    const { token } = await submitResponse.json();
+
+    for (let attempts = 0; attempts < 20; attempts++) {
+      await new Promise(r => setTimeout(r, 800));
+      const res = await fetch(
+        `${this.JUDGE0_URL}/submissions/${token}?base64_encoded=true`,
+        {
+          headers: {
+            'X-RapidAPI-Key': this.RAPIDAPI_KEY,
+            'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com',
+          },
+        }
+      );
+      const data = await res.json();
+      if (data.status?.id > 2) return data;
+    }
+
+    return null;
   }
 
-  private evalExpr(expr: string): any {
-    expr = expr.trim();
-    if (expr.startsWith('"') && expr.endsWith('"')) return expr.slice(1, -1);
-    if (!isNaN(Number(expr))) return Number(expr);
-
-    const jsExpr = expr.replace(/\b(\w+)\b/g, match => {
-      if (this.variables.hasOwnProperty(match)) return String(this.variables[match]);
-      return match;
-    });
-
-    try { return Function(`"use strict"; return (${jsExpr})`)(); }
-    catch { return expr; }
-  }
-
-  private evalCondition(cond: string): boolean {
-    return Boolean(this.evalExpr(cond));
+  execute(code: string): CppResult {
+    return { output: [], error: 'Usa executeAsync para C++' };
   }
 }
