@@ -1,0 +1,325 @@
+<div class="emulator-overlay">
+  <div class="emulator-window">
+
+    <!-- Header -->
+    <div class="emulator-header">
+      <div class="header-left">
+        <span class="header-icon">🔌</span>
+        <span class="header-title">Arduino Emulator</span>
+        <!-- Board selector -->
+        <select class="board-select" [value]="selectedBoard()"
+                (change)="changeBoard($any($event.target).value)">
+          @for (b of boards; track b.model) {
+            <option [value]="b.model">{{ b.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="header-right">
+        <button class="btn-run" [class.running]="isRunning()"
+                (click)="isRunning() ? stopSimulation() : startSimulation()">
+          {{ isRunning() ? '⏹ Detener' : '▶ Simular' }}
+        </button>
+        <button class="btn-close" (click)="close()">✕</button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="emulator-body">
+
+      <!-- Left: Components panel -->
+      <div class="components-panel">
+        <div class="panel-title">Componentes</div>
+        @for (cat of ['output','input','power','communication']; track cat) {
+          <div class="category-label">{{ categoryLabels[cat] }}</div>
+          @for (tmpl of templatesByCategory()[cat]; track tmpl.type) {
+            <div class="component-item"
+                 draggable="true"
+                 (dragstart)="onPanelDragStart($event, tmpl)">
+              <span class="comp-icon">{{ tmpl.icon }}</span>
+              <span class="comp-label">{{ tmpl.label }}</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Center: Canvas -->
+      <div class="canvas-area"
+           #canvas
+           (dragover)="onCanvasDragOver($event)"
+           (drop)="onCanvasDrop($event)"
+           (click)="selectedComponentId.set(null)">
+
+        <!-- Arduino Board SVG -->
+        <div class="board-container" [style.width.px]="board().width" [style.height.px]="board().height">
+          <svg [attr.width]="board().width" [attr.height]="board().height">
+            <!-- Board body -->
+            <rect x="0" y="0" [attr.width]="board().width" [attr.height]="board().height"
+                  [attr.fill]="board().color" rx="8"/>
+
+            <!-- Board label -->
+            <text x="50%" [attr.y]="board().height / 2" text-anchor="middle"
+                  fill="rgba(255,255,255,0.3)" font-size="18" font-weight="bold">
+              {{ board().label }}
+            </text>
+
+            <!-- Pins -->
+            @for (pin of board().pins; track pin.number) {
+              <g>
+                <circle
+                  [attr.cx]="pin.x"
+                  [attr.cy]="pin.y"
+                  r="5"
+                  [attr.fill]="getPinState(pin.number) > 0 ? '#ffff00' : '#silver'"
+                  [attr.stroke]="pin.type === 'gnd' ? '#000' : pin.type === 'power' ? '#f00' : '#fff'"
+                  stroke-width="1.5"/>
+                <text
+                  [attr.x]="pin.x"
+                  [attr.y]="pin.y + (pin.y < board().height / 2 ? -8 : 14)"
+                  text-anchor="middle"
+                  fill="white"
+                  font-size="7">
+                  {{ getPinLabel(pin) }}
+                </text>
+              </g>
+            }
+          </svg>
+        </div>
+
+        <!-- Components -->
+        @for (comp of components(); track comp.id) {
+          <div class="canvas-component"
+               [class.selected]="selectedComponentId() === comp.id"
+               [style.left.px]="comp.x"
+               [style.top.px]="comp.y"
+               [style.width.px]="comp.width"
+               [style.height.px]="comp.height"
+               (mousedown)="onComponentMouseDown($event, comp)">
+
+            <!-- Delete button -->
+            @if (selectedComponentId() === comp.id) {
+              <button class="comp-delete" (click)="deleteComponent(comp.id)">✕</button>
+            }
+
+            <!-- Component visual -->
+            <div class="comp-visual">
+
+              @switch (comp.type) {
+                @case ('led') {
+                  <div class="led-wrapper">
+                    <div class="led-body"
+                         [style.background]="getCompState(comp.id)['on'] ? (comp.color || '#ff0000') : '#1a1a1a'"
+                         [style.border-color]="getCompState(comp.id)['on'] ? '#ffffff' : '#444'"
+                         [style.box-shadow]="getCompState(comp.id)['on']
+        ? '0 0 12px 4px ' + (comp.color || '#ff0000') + ', 0 0 30px 10px ' + (comp.color || '#ff0000')
+        : 'none'">
+                      <div class="led-shine"
+                           [style.opacity]="getCompState(comp.id)['on'] ? '0.6' : '0.1'">
+                      </div>
+                    </div>
+                    <span class="led-status"
+                          [style.color]="getCompState(comp.id)['on'] ? (comp.color || '#ff0000') : '#555'">
+      {{ getCompState(comp.id)['on'] ? '● ON' : '○ OFF' }}
+    </span>
+                    <div class="led-colors">
+                      @for (color of ['#ff0000','#00ff00','#0066ff','#ffff00','#ff6600','#ff00ff']; track color) {
+                        <div class="led-color-dot"
+                             [style.background]="color"
+                             [style.border]="comp.color === color ? '2px solid #fff' : '2px solid transparent'"
+                             (click)="$event.stopPropagation(); setLedColor(comp, color)">
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+                @case ('button') {
+                  <button class="btn-component"
+                          [class.pressed]="comp.state['pressed']"
+                          (mousedown)="toggleButton(comp)"
+                          (mouseup)="toggleButton(comp)">
+                    PUSH
+                  </button>
+                }
+                @case ('potentiometer') {
+                  <div class="pot-body">
+                    <div class="pot-knob" [style.transform]="'rotate(' + comp.state['angle'] + 'deg)'"></div>
+                    <input type="range" min="0" max="1023" [value]="comp.state['value']"
+                           (input)="setPotentiometer(comp, +$any($event.target).value)"
+                           class="pot-slider"/>
+                    <span class="pot-value">{{ comp.state['value'] }}</span>
+                  </div>
+                }
+                @case ('lcd') {
+                  <div class="lcd-screen">
+                    <div class="lcd-line">{{ comp.state['lines']?.[0] || '&nbsp;' }}</div>
+                    <div class="lcd-line">{{ comp.state['lines']?.[1] || '&nbsp;' }}</div>
+                  </div>
+                }
+                @case ('oled') {
+                  <div class="oled-screen">
+                    <span class="oled-text">{{ comp.state['text'] || '' }}</span>
+                  </div>
+                }
+                @case ('buzzer') {
+                  <div class="buzzer-body" [class.buzzer-on]="comp.state['on']">
+                    <span>🔊</span>
+                    @if (comp.state['on']) {
+                      <span class="buzzer-freq">{{ comp.state['frequency'] }}Hz</span>
+                    }
+                  </div>
+                }
+                @case ('servo') {
+                  <div class="servo-body">
+                    <div class="servo-arm" [style.transform]="getServoRotation(comp)"></div>
+                    <span class="servo-angle">{{ comp.state['angle'] }}°</span>
+                  </div>
+                }
+                @case ('dht11') {
+                  <div class="dht-body">
+                    <div>🌡️ {{ comp.state['temperature'] }}°C</div>
+                    <div>💧 {{ comp.state['humidity'] }}%</div>
+                    <input type="range" min="0" max="50" [value]="comp.state['temperature']"
+                           (input)="setTemperature(comp, +$any($event.target).value)" class="sensor-slider"/>
+                  </div>
+                }
+                @case ('ultrasonic') {
+                  <div class="ultrasonic-body">
+                    <div>📡 {{ comp.state['distance'] }}cm</div>
+                    <input type="range" min="2" max="400" [value]="comp.state['distance']"
+                           (input)="setDistance(comp, +$any($event.target).value)" class="sensor-slider"/>
+                  </div>
+                }
+                @case ('segment7') {
+                  <svg width="40" height="60" class="segment-display">
+                    <!-- Segment A (top) -->
+                    <rect x="8" y="2" width="24" height="5" rx="2"
+                          [attr.fill]="getSegmentActive(comp, 'a') ? '#ff2200' : '#222'"/>
+                    <!-- Segment B (top right) -->
+                    <rect x="34" y="4" width="5" height="22" rx="2"
+                          [attr.fill]="getSegmentActive(comp, 'b') ? '#ff2200' : '#222'"/>
+                    <!-- Segment C (bottom right) -->
+                    <rect x="34" y="32" width="5" height="22" rx="2"
+                          [attr.fill]="getSegmentActive(comp, 'c') ? '#ff2200' : '#222'"/>
+                    <!-- Segment D (bottom) -->
+                    <rect x="8" y="54" width="24" height="5" rx="2"
+                          [attr.fill]="getSegmentActive(comp, 'd') ? '#ff2200' : '#222'"/>
+                    <!-- Segment E (bottom left) -->
+                    <rect x="2" y="32" width="5" height="22" rx="2"
+                          [attr.fill]="getSegmentActive(comp, 'e') ? '#ff2200' : '#222'"/>
+                    <!-- Segment F (top left) -->
+                    <rect x="2" y="4" width="5" height="22" rx="2"
+                          [attr.fill]="getSegmentActive(comp, 'f') ? '#ff2200' : '#222'"/>
+                    <!-- Segment G (middle) -->
+                    <rect x="8" y="28" width="24" height="5" rx="2"
+                          [attr.fill]="getSegmentActive(comp, 'g') ? '#ff2200' : '#222'"/>
+                  </svg>
+                }
+                @case ('motor_dc') {
+                  <div class="motor-body">
+                    <div class="motor-wheel"
+                         [style.animation]="comp.state['speed'] > 0 ? 'spin 1s linear infinite' : 'none'">
+                      ⚙️
+                    </div>
+                    <span>{{ comp.state['speed'] > 0 ? comp.state['speed'] + ' PWM' : 'OFF' }}</span>
+                  </div>
+                }
+                @case ('wifi') {
+                  <div class="wifi-body">
+                    <span>📶</span>
+                    <span class="wifi-status">{{ comp.state['connected'] ? comp.state['ssid'] : 'Desconectado' }}</span>
+                  </div>
+                }
+                @case ('bluetooth') {
+                  <div class="bt-body">
+                    <span>📲</span>
+                    <span>{{ comp.state['paired'] ? 'Pareado' : 'Sin parear' }}</span>
+                  </div>
+                }
+                @case ('battery') {
+                  <div class="battery-body">
+                    <span>🔋 {{ comp.state['voltage'] }}V</span>
+                  </div>
+                }
+                @default {
+                  <div class="default-comp">
+                    <span>{{ comp.label }}</span>
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- Component label -->
+            <div class="comp-label-bottom">{{ comp.label }}</div>
+
+            <!-- Pins -->
+            <div class="comp-pins">
+              @for (pin of comp.pins; track pin.name) {
+                <div class="pin-row">
+                  <span class="pin-name">{{ pin.name }}</span>
+                  @if (pin.connectedTo !== null) {
+                    <span class="pin-connected" (click)="disconnectPin(comp, pin.name)">
+                      P{{ pin.connectedTo }} ✕
+                    </span>
+                  } @else {
+                    <span class="pin-dot" (click)="onPinClick($event, comp, pin.name)">
+                      +
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Empty state -->
+        @if (components().length === 0) {
+          <div class="canvas-empty">
+            <span>🖱️ Arrastra componentes aquí</span>
+          </div>
+        }
+      </div>
+
+      <!-- Right: Serial Monitor -->
+      <div class="serial-panel">
+        <div class="panel-title">Serial Monitor</div>
+        <div class="serial-output">
+          @for (entry of serialOutput(); track $index) {
+            <div class="serial-line" [class]="'serial-' + entry.type">
+              {{ entry.text }}
+            </div>
+          }
+        </div>
+        <div class="serial-input-row">
+          <input class="serial-input" type="text"
+                 [value]="serialInput()"
+                 (input)="serialInput.set($any($event.target).value)"
+                 (keydown.enter)="sendSerialInput()"
+                 placeholder="Enviar al Serial..."/>
+          <button class="btn-send" (click)="sendSerialInput()">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pin connection modal -->
+    @if (showPinModal()) {
+      <div class="modal-overlay" (click)="showPinModal.set(false)">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-title">Conectar pin a la placa</div>
+          <select class="pin-select"
+                  (change)="selectedPinNumber.set(+$any($event.target).value)">
+            <option value="">Selecciona un pin...</option>
+            @for (pin of board().pins; track pin.number) {
+              <option [value]="pin.number">
+                {{ getPinLabel(pin) }} ({{ pin.type }})
+              </option>
+            }
+          </select>
+          <div class="modal-actions">
+            <button class="btn-cancel" (click)="showPinModal.set(false)">Cancelar</button>
+            <button class="btn-confirm" (click)="confirmPinConnection()">Conectar</button>
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

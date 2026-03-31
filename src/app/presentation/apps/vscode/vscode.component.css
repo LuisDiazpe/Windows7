@@ -683,3 +683,11 @@
 .console-input-field::placeholder { color: #555; }
 
 .console-input { color: #ce9178; }
+
+
+.arduino-btn {
+  background: #00979d;
+  border-color: #007a80;
+  color: white;
+}
+.arduino-btn:hover { background: #00b3ba; }

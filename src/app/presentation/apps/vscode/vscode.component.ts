@@ -11,10 +11,12 @@ import { PsintInterpreter } from './interpreters/psint.interpreter';
 import { JavaScriptInterpreter } from './interpreters/javascript.interpreter';
 import { CppInterpreter } from './interpreters/cpp.interpreter';
 import { ArduinoInterpreter } from './interpreters/arduino.interpreter';
+import { ArduinoEmulatorComponent } from './arduino-emulator/arduino-emulator.component';
 
 type Language = 'psint' | 'javascript' | 'python' | 'html' | 'cpp' | 'arduino';
 type Theme = 'dark' | 'light';
 type Panel = 'explorer' | 'search' | null;
+
 
 interface EditorTab {
   id: string;
@@ -33,11 +35,12 @@ interface ConsoleEntry {
 @Component({
   selector: 'app-vscode',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ArduinoEmulatorComponent],
   templateUrl: './vscode.component.html',
   styleUrl: './vscode.component.css',
 })
 export class VscodeComponent implements AfterViewInit {
+
   // Consola interactiva
   waitingForInput = signal(false);
   inputPrompt = signal('');
@@ -204,7 +207,7 @@ export class VscodeComponent implements AfterViewInit {
   cursorLine = signal(1);
   cursorCol = signal(1);
   pythonReady = signal(false);
-
+  showArduinoEmulator = signal(false);
 
   private pythonWorker: Worker | null = null;
   private pythonWorkerReady = false;

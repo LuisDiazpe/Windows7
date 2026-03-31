@@ -1,0 +1,699 @@
+.emulator-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emulator-window {
+  width: 95vw;
+  height: 90vh;
+  background: #1e1e1e;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+
+/* Header */
+.emulator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #444;
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon { font-size: 18px; }
+
+.header-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.board-select {
+  background: #3a3a3a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-run {
+  padding: 6px 16px;
+  background: #00878A;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-run:hover { background: #00a0a3; }
+.btn-run.running { background: #c0392b; }
+.btn-run.running:hover { background: #e74c3c; }
+
+.btn-close {
+  padding: 6px 10px;
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-close:hover { background: #c0392b; }
+
+/* Body */
+.emulator-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Components panel */
+.components-panel {
+  width: 160px;
+  background: #252525;
+  border-right: 1px solid #444;
+  overflow-y: auto;
+  padding: 8px;
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid #333;
+}
+
+.category-label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 8px 0 4px;
+}
+
+.component-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: grab;
+  font-size: 12px;
+  color: #ccc;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.component-item:hover { background: #333; color: #fff; }
+.component-item:active { cursor: grabbing; }
+
+.comp-icon { font-size: 16px; }
+.comp-label { font-size: 11px; }
+
+/* Canvas */
+.canvas-area {
+  flex: 1;
+  background: #1a1a2e;
+  position: relative;
+  overflow: auto;
+  background-image:
+    radial-gradient(circle, #333 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.board-container {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.canvas-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #444;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+/* Canvas components */
+.canvas-component {
+  position: absolute;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 4px;
+  cursor: move;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: box-shadow 0.15s;
+  min-width: 60px;
+}
+
+.canvas-component:hover { border-color: #666; }
+.canvas-component.selected {
+  border-color: #00878A;
+  box-shadow: 0 0 0 2px rgba(0,135,138,0.4);
+}
+
+.comp-delete {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.comp-visual {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.comp-label-bottom {
+  font-size: 9px;
+  color: #888;
+  text-align: center;
+}
+
+/* LED */
+.led-body {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 2px solid #555;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.led-on {
+  box-shadow: 0 0 12px 4px currentColor;
+
+}
+.led-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+}
+
+.led-glow {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  opacity: 0.3;
+  transition: all 0.3s;
+  pointer-events: none;
+}
+
+.led-body {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 3px solid #444;
+  transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
+  background: #1a1a1a;
+}
+
+.led-shine {
+  width: 12px;
+  height: 12px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  transition: opacity 0.15s;
+}
+
+.led-status {
+  font-size: 10px;
+  font-weight: bold;
+  transition: color 0.15s;
+}
+
+.led-colors {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.led-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.led-color-dot:hover { transform: scale(1.3); }
+.led-color-dot.active { border-color: #fff; transform: scale(1.2); }
+.led-shine {
+  width: 10px;
+  height: 10px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 50%;
+  position: absolute;
+  top: 6px;
+  left: 6px;
+}
+
+/* Button */
+.btn-component {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #4a90d9;
+  color: #fff;
+  border: 3px solid #2c5f8a;
+  font-size: 9px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.btn-component.pressed {
+  background: #2c5f8a;
+  transform: scale(0.95);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* Potentiometer */
+.pot-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.pot-knob {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #888, #333);
+  border: 2px solid #555;
+  position: relative;
+}
+
+.pot-knob::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 10px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.pot-slider { width: 60px; }
+.pot-value { font-size: 10px; color: #aaa; }
+
+/* LCD */
+.lcd-screen {
+  background: #9dbc98;
+  border: 2px solid #6a8a65;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #1a3a1a;
+  width: 140px;
+}
+
+.lcd-line {
+  white-space: pre;
+  min-height: 14px;
+  letter-spacing: 1px;
+}
+
+/* OLED */
+.oled-screen {
+  background: #000;
+  border: 2px solid #333;
+  border-radius: 4px;
+  padding: 6px;
+  width: 100px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.oled-text {
+  color: #fff;
+  font-family: monospace;
+  font-size: 10px;
+}
+
+/* Buzzer */
+.buzzer-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 20px;
+}
+
+.buzzer-on { animation: pulse 0.5s infinite; }
+.buzzer-freq { font-size: 9px; color: #aaa; }
+
+/* Servo */
+.servo-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+}
+
+.servo-arm {
+  width: 8px;
+  height: 30px;
+  background: #888;
+  border-radius: 4px;
+  transform-origin: bottom center;
+  transition: transform 0.3s;
+}
+
+.servo-angle { font-size: 10px; color: #aaa; }
+
+/* DHT11 */
+.dht-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: #ccc;
+}
+
+.sensor-slider { width: 60px; margin-top: 4px; }
+
+/* Ultrasonic */
+.ultrasonic-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: #ccc;
+}
+
+/* 7 Segment */
+.segment-display { display: block; }
+
+/* Motor */
+.motor-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #ccc;
+}
+
+.motor-wheel { font-size: 24px; }
+
+/* WiFi / BT */
+.wifi-body, .bt-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #ccc;
+}
+
+.wifi-status { font-size: 9px; color: #888; }
+
+/* Battery */
+.battery-body {
+  font-size: 12px;
+  color: #ccc;
+  padding: 4px;
+}
+
+/* Default */
+.default-comp {
+  font-size: 11px;
+  color: #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+/* Pins */
+.comp-pins {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 2px;
+  border-top: 1px solid #333;
+  padding-top: 2px;
+}
+
+.pin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 1px 2px;
+}
+
+.pin-name {
+  font-size: 8px;
+  color: #888;
+  min-width: 24px;
+}
+
+.pin-dot {
+  width: 14px;
+  height: 14px;
+  background: #00878A;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pin-dot:hover { background: #00a0a3; }
+
+.pin-connected {
+  font-size: 8px;
+  color: #00878A;
+  background: rgba(0,135,138,0.15);
+  border-radius: 4px;
+  padding: 1px 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pin-connected:hover { background: rgba(192,57,43,0.2); color: #e74c3c; }
+
+/* Serial panel */
+.serial-panel {
+  width: 220px;
+  background: #1a1a1a;
+  border-left: 1px solid #444;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.serial-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.serial-line { padding: 1px 0; line-height: 1.4; }
+.serial-output { color: #ccc; }
+.serial-input { color: #4a90d9; }
+.serial-info { color: #888; }
+.serial-error { color: #e74c3c; }
+
+.serial-input-row {
+  display: flex;
+  border-top: 1px solid #333;
+  padding: 6px;
+  gap: 4px;
+}
+
+.serial-input {
+  flex: 1;
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 11px;
+}
+
+.btn-send {
+  padding: 4px 8px;
+  background: #00878A;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* Modal */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #2d2d2d;
+  border: 1px solid #555;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.pin-select {
+  background: #3a3a3a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 6px 14px;
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.btn-confirm {
+  padding: 6px 14px;
+  background: #00878A;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+
+.led-body {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 3px solid #555;
+  transition: background 0.2s, box-shadow 0.3s;
+}
+

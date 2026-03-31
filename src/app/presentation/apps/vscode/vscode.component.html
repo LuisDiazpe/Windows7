@@ -147,6 +147,11 @@
               🌐 Open in IE
             </button>
           }
+          @if (activeTab()?.language === 'arduino') {
+            <button class="toolbar-btn arduino-btn" (click)="showArduinoEmulator.set(true)" title="Arduino Emulator">
+              🔌 Emulator
+            </button>
+          }
           <button
             class="toolbar-btn run-btn"
             (click)="run()"
@@ -222,13 +227,13 @@
             }
             @for (entry of consoleOutput(); track $index) {
               <div class="console-line" [class]="'console-' + entry.type">
-          <span class="console-prefix">
-            @if (entry.type === 'error') { ✕ }
-            @else if (entry.type === 'success') { ✓ }
-            @else if (entry.type === 'info') { › }
-            @else if (entry.type === 'input') { > }
-            @else { · }
-          </span>
+                <span class="console-prefix">
+                  @if (entry.type === 'error') { ✕ }
+                  @else if (entry.type === 'success') { ✓ }
+                  @else if (entry.type === 'info') { › }
+                  @else if (entry.type === 'input') { > }
+                  @else { · }
+                </span>
                 <span class="console-text">{{ entry.text }}</span>
               </div>
             }
@@ -268,5 +273,13 @@
       @if (pythonReady()) { <span class="python-ready">🐍 Python ready</span> }
     </div>
   </div>
+
+  <!-- Arduino Emulator Modal -->
+  @if (showArduinoEmulator()) {
+    <app-arduino-emulator
+      [code]="activeTab()?.content || ''"
+      (closed)="showArduinoEmulator.set(false)"
+    />
+  }
 
 </div>
