@@ -52,6 +52,7 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
   wires = signal<Wire[]>([]);
   selectedComponentId = signal<string | null>(null);
 
+  private readonly STORAGE_KEY = 'arduino_emulator_state';
   // Drag state
   draggingComponent: EmulatorComponent | null = null;
   draggingFromPanel: ComponentTemplate | null = null;
@@ -102,9 +103,12 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
   private variables: Record<string, any> = {};
   private pinModes: Record<number, 'input' | 'output'> = {};
 
+
+
   ngAfterViewInit(): void {
     this.addLog('info', '🔌 Emulador Arduino listo');
     this.addLog('info', `📋 Placa: ${this.board().label}`);
+    this.loadState();
   }
 
   //Board
@@ -115,6 +119,7 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
     this.wires.set([]);
     this.serialOutput.set([]);
     this.addLog('info', `📋 Placa cambiada a: ${this.board().label}`);
+    this.saveState();
   }
 
   //Drag from panel
@@ -155,6 +160,7 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
     }));
     this.draggingFromPanel = null;
     this.addLog('info', `➕ ${newComponent.label} agregado al canvas`);
+    this.saveState();
   }
 
   //Drag component on canvas
@@ -221,6 +227,7 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
     this.showPinModal.set(false);
     this.pendingConnection = null;
     this.selectedPinNumber.set(null);
+    this.saveState();
   }
 
   disconnectPin(comp: EmulatorComponent, pinName: string): void {
@@ -235,6 +242,7 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
         };
       })
     );
+    this.saveState();
   }
 
   deleteComponent(id: string): void {
@@ -247,6 +255,7 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
     if (this.selectedComponentId() === id) {
       this.selectedComponentId.set(null);
     }
+    this.saveState();
   }
 
   //Simulation
@@ -321,12 +330,211 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  private async executeArduinoBlockAsync(code: string): Promise<void> {
-    const lines = code.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//'));
-    for (const line of lines) {
-      if (!this.isRunning()) return;
-      await this.executeArduinoLineAsync(line);
+  private saveState(): void {
+    try {
+      const state = {
+        board: this.selectedBoard(),
+        components: this.components(),
+        componentStates: this.componentStates(),
+      };
+      sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('No se pudo guardar estado del emulador', e);
     }
+  }
+
+  private loadState(): void {
+    try {
+      const raw = sessionStorage.getItem(this.STORAGE_KEY);
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      if (state.board) this.selectedBoard.set(state.board);
+      if (state.components?.length) {
+        this.components.set(state.components);
+        this.componentStates.set(state.componentStates || {});
+        this.addLog('info', `♻️ ${state.components.length} componentes restaurados`);
+      }
+    } catch (e) {
+      console.warn('No se pudo cargar estado del emulador', e);
+    }
+  }
+
+  clearAll(): void {
+    this.components.set([]);
+    this.componentStates.set({});
+    this.wires.set([]);
+    sessionStorage.removeItem(this.STORAGE_KEY);
+    this.addLog('info', '🗑️ Canvas limpiado');
+  }
+
+  private async executeArduinoBlockAsync(code: string): Promise<void> {
+    if (!this.isRunning()) return;
+
+    // Tokenizar respetando bloques {}
+    const statements = this.tokenizeBlock(code);
+
+    for (const stmt of statements) {
+      if (!this.isRunning()) return;
+      await this.executeStatementAsync(stmt);
+    }
+  }
+
+  private tokenizeBlock(code: string): string[] {
+    const statements: string[] = [];
+    let current = '';
+    let depth = 0;
+    let i = 0;
+
+    while (i < code.length) {
+      const ch = code[i];
+      if (ch === '{') {
+        depth++;
+        current += ch;
+      } else if (ch === '}') {
+        depth--;
+        current += ch;
+        if (depth === 0) {
+          statements.push(current.trim());
+          current = '';
+        }
+      } else if (ch === ';' && depth === 0) {
+        current += ch;
+        if (current.trim()) statements.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+      i++;
+    }
+    if (current.trim()) statements.push(current.trim());
+    return statements.filter(s => s.length > 0);
+  }
+
+  private async executeStatementAsync(stmt: string): Promise<void> {
+    if (!this.isRunning()) return;
+    stmt = stmt.trim();
+
+    // if/else
+    if (/^if\s*\(/.test(stmt)) {
+      await this.executeIfAsync(stmt);
+      return;
+    }
+
+    // while
+    if (/^while\s*\(/.test(stmt)) {
+      await this.executeWhileAsync(stmt);
+      return;
+    }
+
+    // for
+    if (/^for\s*\(/.test(stmt)) {
+      await this.executeForAsync(stmt);
+      return;
+    }
+
+    // delay — async real
+    if (/^delay\s*\(/.test(stmt)) {
+      const match = stmt.match(/delay\s*\((.+?)\)/);
+      if (match) {
+        const ms = Number(this.evalArduinoExpr(match[1]));
+        this.addLog('info', `⏱ delay(${ms}ms)`);
+        this.cdr.detectChanges();
+        await this.sleep(ms);
+      }
+      return;
+    }
+
+    // Línea normal
+    this.executeArduinoLine(stmt);
+    this.cdr.detectChanges();
+  }
+
+  private async executeIfAsync(stmt: string): Promise<void> {
+    // Extraer condición
+    const condMatch = stmt.match(/^if\s*\((.+?)\)\s*/);
+    if (!condMatch) return;
+
+    const condition = this.evalCondition(condMatch[1]);
+    const rest = stmt.slice(condMatch[0].length).trim();
+
+    // Extraer bloque if
+    let ifBlock = '';
+    let elseBlock = '';
+
+    if (rest.startsWith('{')) {
+      const closeIdx = this.findMatchingBrace(rest, 0);
+      ifBlock = rest.slice(1, closeIdx);
+      const afterIf = rest.slice(closeIdx + 1).trim();
+
+      if (afterIf.startsWith('else')) {
+        const elseRest = afterIf.slice(4).trim();
+        if (elseRest.startsWith('{')) {
+          const elseClose = this.findMatchingBrace(elseRest, 0);
+          elseBlock = elseRest.slice(1, elseClose);
+        } else {
+          elseBlock = elseRest;
+        }
+      }
+    } else {
+      // Single line if
+      ifBlock = rest.split(';')[0] + ';';
+    }
+
+    if (condition) {
+      await this.executeArduinoBlockAsync(ifBlock);
+    } else if (elseBlock) {
+      await this.executeArduinoBlockAsync(elseBlock);
+    }
+  }
+
+  private async executeWhileAsync(stmt: string): Promise<void> {
+    const match = stmt.match(/^while\s*\((.+?)\)\s*\{([\s\S]*)\}/);
+    if (!match) return;
+
+    let iterations = 0;
+    while (this.isRunning() && this.evalCondition(match[1]) && iterations < 10000) {
+      await this.executeArduinoBlockAsync(match[2]);
+      iterations++;
+    }
+  }
+
+  private async executeForAsync(stmt: string): Promise<void> {
+    const match = stmt.match(/^for\s*\((.+?);(.+?);(.+?)\)\s*\{([\s\S]*)\}/);
+    if (!match) return;
+
+    this.executeArduinoLine(match[1].trim() + ';');
+    let iterations = 0;
+    while (this.isRunning() && this.evalCondition(match[2].trim()) && iterations < 10000) {
+      await this.executeArduinoBlockAsync(match[4]);
+      this.executeArduinoLine(match[3].trim() + ';');
+      iterations++;
+    }
+  }
+
+  private evalCondition(expr: string): boolean {
+    expr = expr.trim();
+    const replaced = expr.replace(/\b([a-zA-Z_]\w*)\b/g, (match) => {
+      if (this.variables.hasOwnProperty(match)) return String(this.variables[match]);
+      if (match === 'HIGH') return '1';
+      if (match === 'LOW') return '0';
+      if (match === 'true') return 'true';
+      if (match === 'false') return 'false';
+      return match;
+    });
+    try {
+      return Boolean(Function(`"use strict"; return (${replaced})`)());
+    } catch {
+      return false;
+    }
+  }
+
+  private findMatchingBrace(code: string, start: number): number {
+    let depth = 0;
+    for (let i = start; i < code.length; i++) {
+      if (code[i] === '{') depth++;
+      if (code[i] === '}') { depth--; if (depth === 0) return i; }
+    }
+    return code.length - 1;
   }
 
   private async executeArduinoLineAsync(line: string): Promise<void> {
@@ -411,25 +619,142 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
   }
 
   private executeArduinoLine(line: string): void {
-    // Variable declaration
-    const declMatch = line.match(/^(?:const\s+)?(?:int|float|double|char|bool|long|String|byte)\s+(\w+)\s*=\s*(.+?)\s*;?$/);
-    if (declMatch) {
-      this.variables[declMatch[1]] = this.evalArduinoExpr(declMatch[2]);
+
+    // Ignorar includes, defines y declaraciones de objetos de librerías
+    if (line.startsWith('#') ||
+      line.startsWith('Adafruit_') ||
+      line.startsWith('Servo ') ||
+      line.includes('display.begin') ||
+      line.includes('display.clearDisplay') ||
+      line.includes('display.setCursor') ||
+      line.includes('display.setTextSize') ||
+      line.includes('display.setTextColor') ||
+      line.includes('Wire.begin')) {
       return;
     }
 
-    // Assignment
-    const assignMatch = line.match(/^(\w+)\s*([\+\-\*\/]?=)\s*(.+?)\s*;?$/);
-    if (assignMatch && this.variables.hasOwnProperty(assignMatch[1])) {
-      const varName = assignMatch[1];
-      const op = assignMatch[2];
-      const val = this.evalArduinoExpr(assignMatch[3]);
-      if (op === '=') this.variables[varName] = val;
-      else if (op === '+=') this.variables[varName] += val;
-      else if (op === '-=') this.variables[varName] -= val;
-      else if (op === '*=') this.variables[varName] *= val;
-      else if (op === '/=') this.variables[varName] /= val;
+    // display.println / display.print — actualizar OLED/LCD
+    if (/display\.(print|println)\s*\(/.test(line)) {
+      const match = line.match(/display\.print(?:ln)?\s*\(\s*(.+?)\s*\)\s*;?$/);
+      if (match) {
+        const val = String(this.evalArduinoExpr(match[1]));
+        this.updateComponentByType('oled', { text: val });
+        this.updateComponentByType('lcd', {
+          lines: [val, '']
+        });
+      }
       return;
+    }
+
+    // display.display() — mostrar buffer (ya lo hacemos en tiempo real)
+    if (/display\.display\s*\(/.test(line)) return;
+
+    // Servo.attach
+    if (/\.\s*attach\s*\(/.test(line)) {
+      const match = line.match(/(\w+)\s*\.\s*attach\s*\((.+?)\)/);
+      if (match) {
+        const pin = Number(this.evalArduinoExpr(match[2]));
+        this.addLog('info', `⚙️ Servo conectado al pin ${pin}`);
+        // Registrar qué variable es el servo y en qué pin
+        this.variables[`__servo_${match[1]}`] = pin;
+      }
+      return;
+    }
+
+    // Servo.write — miServo.write(90)
+    if (/\.\s*write\s*\(/.test(line)) {
+      const match = line.match(/(\w+)\s*\.\s*write\s*\((.+?)\)/);
+      if (match) {
+        const angle = Number(this.evalArduinoExpr(match[2]));
+        const servoPin = this.variables[`__servo_${match[1]}`];
+        this.updateComponentByType('servo', { angle });
+        if (servoPin !== undefined) {
+          this.updateComponentsFromPin(servoPin, angle);
+        }
+        this.addLog('output', `⚙️ Servo → ${angle}°`);
+      }
+      return;
+    }
+
+    // digitalRead — retorna el estado real del pin
+    if (/digitalRead\s*\(/.test(line)) {
+      // Se maneja en assignments abajo
+    }
+
+    // Variable declaration con posible digitalRead / analogRead
+    const declMatch = line.match(/^(?:const\s+)?(?:int|float|double|char|bool|long|String|byte)\s+(\w+)\s*=\s*(.+?)\s*;?$/);
+    if (declMatch) {
+      const varName = declMatch[1];
+      const expr = declMatch[2].trim();
+
+      if (/digitalRead\s*\(/.test(expr)) {
+        const pinMatch = expr.match(/digitalRead\s*\((.+?)\)/);
+        if (pinMatch) {
+          const pin = Number(this.evalArduinoExpr(pinMatch[1]));
+          // Leer estado real del pin desde pinStates
+          // INPUT_PULLUP: sin presionar = HIGH (1), presionado = LOW (0)
+          const isPullup = this.pinModes[pin] === 'input';
+          const buttonComp = this.components().find(c =>
+            c.type === 'button' && c.pins.some(p => Number(p.connectedTo) === pin)
+          );
+          const pressed = buttonComp?.state['pressed'] ?? false;
+          // Con INPUT_PULLUP: pressed=true → LOW(0), pressed=false → HIGH(1)
+          this.variables[varName] = pressed ? 0 : 1;
+          this.addLog('info', `📖 digitalRead(${pin}) = ${this.variables[varName]}`);
+        }
+      } else if (/analogRead\s*\(/.test(expr)) {
+        const pinMatch = expr.match(/analogRead\s*\((.+?)\)/);
+        if (pinMatch) {
+          const pin = Number(this.evalArduinoExpr(pinMatch[1]));
+          const potComp = this.components().find(c =>
+            c.type === 'potentiometer' && c.pins.some(p => Number(p.connectedTo) === pin)
+          );
+          this.variables[varName] = potComp?.state['value'] ?? 0;
+          this.addLog('info', `📖 analogRead(${pin}) = ${this.variables[varName]}`);
+        }
+      } else {
+        this.variables[varName] = this.evalArduinoExpr(expr);
+      }
+      return;
+    }
+
+    // Assignment con digitalRead / analogRead
+    const assignMatch = line.match(/^(\w+)\s*=\s*(.+?)\s*;?$/);
+    if (assignMatch) {
+      const varName = assignMatch[1];
+      const expr = assignMatch[2].trim();
+
+      if (/digitalRead\s*\(/.test(expr)) {
+        const pinMatch = expr.match(/digitalRead\s*\((.+?)\)/);
+        if (pinMatch) {
+          const pin = Number(this.evalArduinoExpr(pinMatch[1]));
+          const buttonComp = this.components().find(c =>
+            c.type === 'button' && c.pins.some(p => Number(p.connectedTo) === pin)
+          );
+          const pressed = buttonComp?.state['pressed'] ?? false;
+          this.variables[varName] = pressed ? 0 : 1;
+          this.addLog('info', `📖 digitalRead(${pin}) = ${this.variables[varName]}`);
+        }
+        return;
+      }
+
+      if (/analogRead\s*\(/.test(expr)) {
+        const pinMatch = expr.match(/analogRead\s*\((.+?)\)/);
+        if (pinMatch) {
+          const pin = Number(this.evalArduinoExpr(pinMatch[1]));
+          const potComp = this.components().find(c =>
+            c.type === 'potentiometer' && c.pins.some(p => Number(p.connectedTo) === pin)
+          );
+          this.variables[varName] = potComp?.state['value'] ?? 0;
+          this.addLog('info', `📖 analogRead(${pin}) = ${this.variables[varName]}`);
+        }
+        return;
+      }
+
+      if (this.variables.hasOwnProperty(varName)) {
+        this.variables[varName] = this.evalArduinoExpr(expr);
+        return;
+      }
     }
 
     // Increment/decrement
@@ -463,7 +788,7 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
         const pin = Number(this.evalArduinoExpr(match[1]));
         const mode = match[2] === 'OUTPUT' ? 'output' : 'input';
         this.pinModes[pin] = mode;
-        this.addLog('info', `📌 Pin ${pin} → ${mode.toUpperCase()}`);
+        this.addLog('info', `📌 Pin ${pin} → ${match[2]}`);
       }
       return;
     }
@@ -518,13 +843,11 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
       return;
     }
 
-    // Servo.write
-    if (/\.write\s*\(/.test(line)) {
-      const match = line.match(/(\w+)\.write\s*\((.+?)\)/);
+    // if statement — evaluar condición
+    if (/^if\s*\(/.test(line)) {
+      const match = line.match(/^if\s*\((.+?)\)\s*\{?\s*$/);
       if (match) {
-        const angle = Number(this.evalArduinoExpr(match[2]));
-        this.updateComponentByType('servo', { angle });
-        this.addLog('output', `⚙️ Servo → ${angle}°`);
+        // La condición se evaluará en executeArduinoBlockAsync
       }
       return;
     }
@@ -567,7 +890,7 @@ export class ArduinoEmulatorComponent implements AfterViewInit {
       return { ...comp, state: { ...comp.state, ...newState } };
     });
 
-    // Actualizar components y componentStates con nuevas referencias
+
     this.components.set([...updated]);
     const states: Record<string, Record<string, any>> = {};
     updated.forEach(c => { states[c.id] = { ...c.state }; });

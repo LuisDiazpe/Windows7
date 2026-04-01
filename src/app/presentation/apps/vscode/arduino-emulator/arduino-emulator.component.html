@@ -15,6 +15,9 @@
         </select>
       </div>
       <div class="header-right">
+        <button class="btn-clear" (click)="clearAll()" title="Limpiar canvas">
+          🗑️ Clear All
+        </button>
         <button class="btn-run" [class.running]="isRunning()"
                 (click)="isRunning() ? stopSimulation() : startSimulation()">
           {{ isRunning() ? '⏹ Detener' : '▶ Simular' }}
@@ -96,9 +99,12 @@
                (mousedown)="onComponentMouseDown($event, comp)">
 
             <!-- Delete button -->
-            @if (selectedComponentId() === comp.id) {
-              <button class="comp-delete" (click)="deleteComponent(comp.id)">✕</button>
-            }
+
+              <button class="comp-delete"
+                      (click)="$event.stopPropagation(); deleteComponent(comp.id)">
+                ✕
+              </button>
+
 
             <!-- Component visual -->
             <div class="comp-visual">
